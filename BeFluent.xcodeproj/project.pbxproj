@@ -7,25 +7,67 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AB49115CA11A162903A14904 /* Pods_BeFluent.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 707EE36475CDEE1AAE38ED04 /* Pods_BeFluent.framework */; };
 		E71F3F292150A239008E06A5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E71F3F282150A239008E06A5 /* AppDelegate.m */; };
 		E71F3F2C2150A239008E06A5 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E71F3F2B2150A239008E06A5 /* ViewController.m */; };
-		E71F3F2F2150A239008E06A5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E71F3F2D2150A239008E06A5 /* Main.storyboard */; };
 		E71F3F312150A23B008E06A5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E71F3F302150A23B008E06A5 /* Assets.xcassets */; };
 		E71F3F342150A23B008E06A5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E71F3F322150A23B008E06A5 /* LaunchScreen.storyboard */; };
 		E71F3F372150A23B008E06A5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E71F3F362150A23B008E06A5 /* main.m */; };
+		E724EC362167167800E7B826 /* RTCICEServer+WebRTCApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E724EC352167167800E7B826 /* RTCICEServer+WebRTCApp.m */; };
+		E724EC3921673D4400E7B826 /* RTCMediaStream+WebRTCApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E724EC3821673D4400E7B826 /* RTCMediaStream+WebRTCApp.m */; };
+		E7276CFB215C7F34001821E6 /* WebRTCAppClient.m in Sources */ = {isa = PBXBuildFile; fileRef = E7276CFA215C7F34001821E6 /* WebRTCAppClient.m */; };
+		E776519C216E4D8A005271CD /* RTCPeerConnection+WebRTCAApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E776519B216E4D8A005271CD /* RTCPeerConnection+WebRTCAApp.m */; };
+		E77651A2216F33F8005271CD /* WebRTCAppSignalingMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = E77651A0216F33F8005271CD /* WebRTCAppSignalingMessage.m */; };
+		E77651A3216F33F8005271CD /* WebRTCAppUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = E77651A1216F33F8005271CD /* WebRTCAppUtilities.m */; };
+		E77651A6216F340F005271CD /* WebRTCAppClient+Defaults.m in Sources */ = {isa = PBXBuildFile; fileRef = E77651A5216F340F005271CD /* WebRTCAppClient+Defaults.m */; };
+		E7BA4F0C21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.m in Sources */ = {isa = PBXBuildFile; fileRef = E7BA4F0B21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.m */; };
+		E7BA4F0F2170995B00EEA8D5 /* FIRApp+WebRTCApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E7BA4F0E2170995B00EEA8D5 /* FIRApp+WebRTCApp.m */; };
+		E7BD14302161AFE10079CC86 /* WebRTCAppFirestoreManager.m in Sources */ = {isa = PBXBuildFile; fileRef = E7BD142F2161AFE10079CC86 /* WebRTCAppFirestoreManager.m */; };
+		E7BD14362161B0160079CC86 /* RTCICECandidate+WebRTCApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E7BD14322161B0160079CC86 /* RTCICECandidate+WebRTCApp.m */; };
+		E7BD14372161B0160079CC86 /* RTCSessionDescription+WebRTCApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E7BD14352161B0160079CC86 /* RTCSessionDescription+WebRTCApp.m */; };
+		E7BD143A216210CF0079CC86 /* NSError+WebRTCApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E7BD1439216210CF0079CC86 /* NSError+WebRTCApp.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		707EE36475CDEE1AAE38ED04 /* Pods_BeFluent.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_BeFluent.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C04E8F3D8B9FE8995BBD6A67 /* Pods-BeFluent.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BeFluent.release.xcconfig"; path = "Pods/Target Support Files/Pods-BeFluent/Pods-BeFluent.release.xcconfig"; sourceTree = "<group>"; };
+		C6DCC77E625BE42E9E5994FD /* Pods-BeFluent.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BeFluent.debug.xcconfig"; path = "Pods/Target Support Files/Pods-BeFluent/Pods-BeFluent.debug.xcconfig"; sourceTree = "<group>"; };
 		E71F3F242150A239008E06A5 /* BeFluent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeFluent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E71F3F272150A239008E06A5 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		E71F3F282150A239008E06A5 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		E71F3F2A2150A239008E06A5 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		E71F3F2B2150A239008E06A5 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
-		E71F3F2E2150A239008E06A5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		E71F3F302150A23B008E06A5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E71F3F332150A23B008E06A5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		E71F3F352150A23B008E06A5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E71F3F362150A23B008E06A5 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		E724EC342167167800E7B826 /* RTCICEServer+WebRTCApp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RTCICEServer+WebRTCApp.h"; sourceTree = "<group>"; };
+		E724EC352167167800E7B826 /* RTCICEServer+WebRTCApp.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "RTCICEServer+WebRTCApp.m"; sourceTree = "<group>"; };
+		E724EC3721673D4400E7B826 /* RTCMediaStream+WebRTCApp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RTCMediaStream+WebRTCApp.h"; sourceTree = "<group>"; };
+		E724EC3821673D4400E7B826 /* RTCMediaStream+WebRTCApp.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "RTCMediaStream+WebRTCApp.m"; sourceTree = "<group>"; };
+		E7276CF6215C7D02001821E6 /* WebRTCAppHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebRTCAppHeader.h; sourceTree = "<group>"; };
+		E7276CF9215C7F34001821E6 /* WebRTCAppClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebRTCAppClient.h; sourceTree = "<group>"; };
+		E7276CFA215C7F34001821E6 /* WebRTCAppClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WebRTCAppClient.m; sourceTree = "<group>"; };
+		E776519A216E4D8A005271CD /* RTCPeerConnection+WebRTCAApp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RTCPeerConnection+WebRTCAApp.h"; sourceTree = "<group>"; };
+		E776519B216E4D8A005271CD /* RTCPeerConnection+WebRTCAApp.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "RTCPeerConnection+WebRTCAApp.m"; sourceTree = "<group>"; };
+		E776519E216F33F8005271CD /* WebRTCAppSignalingMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebRTCAppSignalingMessage.h; sourceTree = "<group>"; };
+		E776519F216F33F8005271CD /* WebRTCAppUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebRTCAppUtilities.h; sourceTree = "<group>"; };
+		E77651A0216F33F8005271CD /* WebRTCAppSignalingMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebRTCAppSignalingMessage.m; sourceTree = "<group>"; };
+		E77651A1216F33F8005271CD /* WebRTCAppUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebRTCAppUtilities.m; sourceTree = "<group>"; };
+		E77651A4216F340F005271CD /* WebRTCAppClient+Defaults.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "WebRTCAppClient+Defaults.h"; sourceTree = "<group>"; };
+		E77651A5216F340F005271CD /* WebRTCAppClient+Defaults.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "WebRTCAppClient+Defaults.m"; sourceTree = "<group>"; };
+		E7BA4F0A21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebRTCAppFIRDBManager.h; sourceTree = "<group>"; };
+		E7BA4F0B21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WebRTCAppFIRDBManager.m; sourceTree = "<group>"; };
+		E7BA4F0D2170995B00EEA8D5 /* FIRApp+WebRTCApp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FIRApp+WebRTCApp.h"; sourceTree = "<group>"; };
+		E7BA4F0E2170995B00EEA8D5 /* FIRApp+WebRTCApp.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "FIRApp+WebRTCApp.m"; sourceTree = "<group>"; };
+		E7BD142E2161AFE10079CC86 /* WebRTCAppFirestoreManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebRTCAppFirestoreManager.h; sourceTree = "<group>"; };
+		E7BD142F2161AFE10079CC86 /* WebRTCAppFirestoreManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WebRTCAppFirestoreManager.m; sourceTree = "<group>"; };
+		E7BD14322161B0160079CC86 /* RTCICECandidate+WebRTCApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RTCICECandidate+WebRTCApp.m"; sourceTree = "<group>"; };
+		E7BD14332161B0160079CC86 /* RTCSessionDescription+WebRTCApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "RTCSessionDescription+WebRTCApp.h"; sourceTree = "<group>"; };
+		E7BD14342161B0160079CC86 /* RTCICECandidate+WebRTCApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "RTCICECandidate+WebRTCApp.h"; sourceTree = "<group>"; };
+		E7BD14352161B0160079CC86 /* RTCSessionDescription+WebRTCApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RTCSessionDescription+WebRTCApp.m"; sourceTree = "<group>"; };
+		E7BD1438216210CF0079CC86 /* NSError+WebRTCApp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSError+WebRTCApp.h"; sourceTree = "<group>"; };
+		E7BD1439216210CF0079CC86 /* NSError+WebRTCApp.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSError+WebRTCApp.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -33,17 +75,37 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AB49115CA11A162903A14904 /* Pods_BeFluent.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		6655BC0C89F0D2FDC6DD163A /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				C6DCC77E625BE42E9E5994FD /* Pods-BeFluent.debug.xcconfig */,
+				C04E8F3D8B9FE8995BBD6A67 /* Pods-BeFluent.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		C6AB2DF9191A04F5DD3096EE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				707EE36475CDEE1AAE38ED04 /* Pods_BeFluent.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		E71F3F1B2150A239008E06A5 = {
 			isa = PBXGroup;
 			children = (
 				E71F3F262150A239008E06A5 /* BeFluent */,
 				E71F3F252150A239008E06A5 /* Products */,
+				6655BC0C89F0D2FDC6DD163A /* Pods */,
+				C6AB2DF9191A04F5DD3096EE /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -58,17 +120,75 @@
 		E71F3F262150A239008E06A5 /* BeFluent */ = {
 			isa = PBXGroup;
 			children = (
+				E7276CF2215B9205001821E6 /* RTC */,
 				E71F3F272150A239008E06A5 /* AppDelegate.h */,
 				E71F3F282150A239008E06A5 /* AppDelegate.m */,
 				E71F3F2A2150A239008E06A5 /* ViewController.h */,
 				E71F3F2B2150A239008E06A5 /* ViewController.m */,
-				E71F3F2D2150A239008E06A5 /* Main.storyboard */,
 				E71F3F302150A23B008E06A5 /* Assets.xcassets */,
 				E71F3F322150A23B008E06A5 /* LaunchScreen.storyboard */,
 				E71F3F352150A23B008E06A5 /* Info.plist */,
 				E71F3F362150A23B008E06A5 /* main.m */,
 			);
 			path = BeFluent;
+			sourceTree = "<group>";
+		};
+		E7276CF2215B9205001821E6 /* RTC */ = {
+			isa = PBXGroup;
+			children = (
+				E7276CF6215C7D02001821E6 /* WebRTCAppHeader.h */,
+				E7276CF9215C7F34001821E6 /* WebRTCAppClient.h */,
+				E7276CFA215C7F34001821E6 /* WebRTCAppClient.m */,
+				E776519D216F33F8005271CD /* Utils */,
+				E7BD14312161B0160079CC86 /* Extension */,
+				E7276D0C215DDC4D001821E6 /* Firebase */,
+			);
+			path = RTC;
+			sourceTree = "<group>";
+		};
+		E7276D0C215DDC4D001821E6 /* Firebase */ = {
+			isa = PBXGroup;
+			children = (
+				E7BA4F0D2170995B00EEA8D5 /* FIRApp+WebRTCApp.h */,
+				E7BA4F0E2170995B00EEA8D5 /* FIRApp+WebRTCApp.m */,
+				E7BD142E2161AFE10079CC86 /* WebRTCAppFirestoreManager.h */,
+				E7BD142F2161AFE10079CC86 /* WebRTCAppFirestoreManager.m */,
+				E7BA4F0A21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.h */,
+				E7BA4F0B21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.m */,
+			);
+			path = Firebase;
+			sourceTree = "<group>";
+		};
+		E776519D216F33F8005271CD /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				E776519E216F33F8005271CD /* WebRTCAppSignalingMessage.h */,
+				E77651A0216F33F8005271CD /* WebRTCAppSignalingMessage.m */,
+				E776519F216F33F8005271CD /* WebRTCAppUtilities.h */,
+				E77651A1216F33F8005271CD /* WebRTCAppUtilities.m */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		E7BD14312161B0160079CC86 /* Extension */ = {
+			isa = PBXGroup;
+			children = (
+				E77651A4216F340F005271CD /* WebRTCAppClient+Defaults.h */,
+				E77651A5216F340F005271CD /* WebRTCAppClient+Defaults.m */,
+				E7BD1438216210CF0079CC86 /* NSError+WebRTCApp.h */,
+				E7BD1439216210CF0079CC86 /* NSError+WebRTCApp.m */,
+				E724EC342167167800E7B826 /* RTCICEServer+WebRTCApp.h */,
+				E724EC352167167800E7B826 /* RTCICEServer+WebRTCApp.m */,
+				E7BD14342161B0160079CC86 /* RTCICECandidate+WebRTCApp.h */,
+				E7BD14322161B0160079CC86 /* RTCICECandidate+WebRTCApp.m */,
+				E7BD14332161B0160079CC86 /* RTCSessionDescription+WebRTCApp.h */,
+				E7BD14352161B0160079CC86 /* RTCSessionDescription+WebRTCApp.m */,
+				E724EC3721673D4400E7B826 /* RTCMediaStream+WebRTCApp.h */,
+				E724EC3821673D4400E7B826 /* RTCMediaStream+WebRTCApp.m */,
+				E776519A216E4D8A005271CD /* RTCPeerConnection+WebRTCAApp.h */,
+				E776519B216E4D8A005271CD /* RTCPeerConnection+WebRTCAApp.m */,
+			);
+			path = Extension;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -78,9 +198,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E71F3F3A2150A23B008E06A5 /* Build configuration list for PBXNativeTarget "BeFluent" */;
 			buildPhases = (
+				205EAEB27E3507F149122C91 /* [CP] Check Pods Manifest.lock */,
 				E71F3F202150A239008E06A5 /* Sources */,
 				E71F3F212150A239008E06A5 /* Frameworks */,
 				E71F3F222150A239008E06A5 /* Resources */,
+				2163E0FDEB26069F7D7AF647 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -130,34 +252,95 @@
 			files = (
 				E71F3F342150A23B008E06A5 /* LaunchScreen.storyboard in Resources */,
 				E71F3F312150A23B008E06A5 /* Assets.xcassets in Resources */,
-				E71F3F2F2150A239008E06A5 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		205EAEB27E3507F149122C91 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-BeFluent-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		2163E0FDEB26069F7D7AF647 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-BeFluent/Pods-BeFluent-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/BoringSSL/openssl.framework",
+				"${BUILT_PRODUCTS_DIR}/GTMSessionFetcher/GTMSessionFetcher.framework",
+				"${BUILT_PRODUCTS_DIR}/GoogleUtilities/GoogleUtilities.framework",
+				"${BUILT_PRODUCTS_DIR}/Protobuf/Protobuf.framework",
+				"${BUILT_PRODUCTS_DIR}/gRPC/GRPCClient.framework",
+				"${BUILT_PRODUCTS_DIR}/gRPC-Core/grpc.framework",
+				"${BUILT_PRODUCTS_DIR}/gRPC-ProtoRPC/ProtoRPC.framework",
+				"${BUILT_PRODUCTS_DIR}/gRPC-RxLibrary/RxLibrary.framework",
+				"${BUILT_PRODUCTS_DIR}/leveldb-library/leveldb.framework",
+				"${BUILT_PRODUCTS_DIR}/nanopb/nanopb.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/openssl.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GTMSessionFetcher.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleUtilities.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Protobuf.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GRPCClient.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/grpc.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ProtoRPC.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxLibrary.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/leveldb.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/nanopb.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-BeFluent/Pods-BeFluent-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E71F3F202150A239008E06A5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E77651A3216F33F8005271CD /* WebRTCAppUtilities.m in Sources */,
+				E7BD143A216210CF0079CC86 /* NSError+WebRTCApp.m in Sources */,
+				E7BA4F0F2170995B00EEA8D5 /* FIRApp+WebRTCApp.m in Sources */,
+				E7BA4F0C21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.m in Sources */,
+				E7BD14372161B0160079CC86 /* RTCSessionDescription+WebRTCApp.m in Sources */,
+				E724EC362167167800E7B826 /* RTCICEServer+WebRTCApp.m in Sources */,
+				E7BD14302161AFE10079CC86 /* WebRTCAppFirestoreManager.m in Sources */,
+				E77651A6216F340F005271CD /* WebRTCAppClient+Defaults.m in Sources */,
 				E71F3F2C2150A239008E06A5 /* ViewController.m in Sources */,
 				E71F3F372150A23B008E06A5 /* main.m in Sources */,
+				E7BD14362161B0160079CC86 /* RTCICECandidate+WebRTCApp.m in Sources */,
 				E71F3F292150A239008E06A5 /* AppDelegate.m in Sources */,
+				E776519C216E4D8A005271CD /* RTCPeerConnection+WebRTCAApp.m in Sources */,
+				E724EC3921673D4400E7B826 /* RTCMediaStream+WebRTCApp.m in Sources */,
+				E7276CFB215C7F34001821E6 /* WebRTCAppClient.m in Sources */,
+				E77651A2216F33F8005271CD /* WebRTCAppSignalingMessage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		E71F3F2D2150A239008E06A5 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				E71F3F2E2150A239008E06A5 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		E71F3F322150A23B008E06A5 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -281,16 +464,19 @@
 		};
 		E71F3F3B2150A23B008E06A5 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C6DCC77E625BE42E9E5994FD /* Pods-BeFluent.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = G7UYAV3U3M;
+				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = BeFluent/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.befluent.www.BeFluent;
+				PRODUCT_BUNDLE_IDENTIFIER = com.webrtcapp.www;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -298,16 +484,19 @@
 		};
 		E71F3F3C2150A23B008E06A5 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C04E8F3D8B9FE8995BBD6A67 /* Pods-BeFluent.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = G7UYAV3U3M;
+				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = BeFluent/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.befluent.www.BeFluent;
+				PRODUCT_BUNDLE_IDENTIFIER = com.webrtcapp.www;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
