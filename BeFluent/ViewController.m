@@ -7,17 +7,18 @@
 //
 
 #import "ViewController.h"
-#import "WebRTCAppFirestoreManager.h"
+#import "WebRTCAppFIRDBManager.h"
 #import <FirebaseAuth/FirebaseAuth.h>
 #import "WebRTCAppClient.h"
+#import "WebRTCAppCaptureController.h"
 
-static NSString *userId = @"tester";
+static NSString *userId = @""; // random
 static NSString *roomId = @"30678";
 
 @interface ViewController () <WebRTCAppClientDelegate>
-
-@property (nonatomic,strong)WebRTCAppClient *connection;
-
+@property (nonatomic, strong) RTCVideoTrack *remoteVideoTrack;
+@property (nonatomic,strong) WebRTCAppClient *connection;
+@property (nonatomic,strong) WebRTCAppCaptureController *captureController;
 @end
 
 @implementation ViewController
@@ -26,6 +27,7 @@ static NSString *roomId = @"30678";
     [super viewDidLoad];
     userId = [[NSUUID UUID].UUIDString substringWithRange:NSMakeRange(0,8)];
     [self layoutInit];
+    [[WebRTCAppFIRDBManager sharedInstance] signInWithToken:nil completion:nil];
 }
 
 #pragma mark - Action
@@ -68,11 +70,17 @@ static NSString *roomId = @"30678";
 
 - (void)swapAction
 {
-    if( self.connection.cameraPosition == AVCaptureDevicePositionBack){
-        self.connection.cameraPosition = AVCaptureDevicePositionFront;
-    } else{
-        self.connection.cameraPosition = AVCaptureDevicePositionBack;
-    }
+    [self.captureController switchCamera];
+}
+
+-(void)speakerON
+{
+    [WebRTCAppClient enableSpeaker];
+}
+
+-(void)speakerOFF
+{
+    [WebRTCAppClient disableSpeaker];
 }
 
 #pragma mark - Private
@@ -103,14 +111,17 @@ static NSString *roomId = @"30678";
     UIButton *closeBtn = [self btnWithName:@"close" x:10 y:430 action:@selector(closeAction)];
     [self.view addSubview:closeBtn];
     
+    UIButton *speakerONBtn = [self btnWithName:@"speaker on" x:170 y:370 action:@selector(speakerON)];
+    [self.view addSubview:speakerONBtn];
     
-    self.localView = [[RTCEAGLVideoView alloc] initWithFrame:CGRectMake(10, 60, 150, 150)];
-//        [self.localView setDelegate:self];
-    [self.view addSubview:self.localView];
+    UIButton *speakerOFFBtn = [self btnWithName:@"speaker off" x:170 y:430 action:@selector(speakerOFF)];
+    [self.view addSubview:speakerOFFBtn];
     
-    self.remoteView = [[RTCEAGLVideoView alloc] initWithFrame:CGRectMake(170, 60, 150, 150)];
-    //    [self.localView setDelegate:self];
-    [self.view addSubview:self.remoteView];
+    self.localVideoView = [[RTCCameraPreviewView alloc] initWithFrame:CGRectMake(10, 60, 150, 150)];
+    [self.view addSubview:self.localVideoView];
+    
+    self.remoteVideoView = [[RTCEAGLVideoView alloc] initWithFrame:self.view.frame];
+    [self.view insertSubview:self.remoteVideoView belowSubview:connectBtn];
     
     self.label = [[UILabel alloc] initWithFrame:CGRectMake(10, 500, 300, 50)];
     self.label.backgroundColor = [UIColor lightGrayColor];
@@ -127,16 +138,16 @@ static NSString *roomId = @"30678";
 
 -(void)removeStreamRender
 {
-    if (self.localVideoTrack) {
-        [self.localVideoTrack removeRenderer:self.localView];
-        self.localVideoTrack = nil;
-        [self.localView renderFrame:nil];
+    if (self.captureController) {
+        [self.captureController.capturer stopCapture];
+        self.localVideoView.captureSession = nil;
     }
     
-    if (self.remoteView) {
-        [self.remoteVideoTrack removeRenderer:self.remoteView];
+    if (self.remoteVideoTrack) {
+        [self.remoteVideoTrack removeRenderer:self.remoteVideoView];
+        [self.remoteVideoView renderFrame:nil];
         self.remoteVideoTrack = nil;
-        [self.remoteView renderFrame:nil];
+        [self.remoteVideoView renderFrame:nil];
     }
 }
 
@@ -147,8 +158,8 @@ static NSString *roomId = @"30678";
     if(state == WebRTCAppClientStateDisconnected){
         [self removeStreamRender];
     }
+    
     dispatch_async(dispatch_get_main_queue(), ^{
-        
         if(state == WebRTCAppClientStateDisconnected){
             self.label.text = @"Not Connected";
         } else if(state == WebRTCAppClientStateConnecting){
@@ -159,35 +170,30 @@ static NSString *roomId = @"30678";
     });
 }
 
-- (void)appClient:(WebRTCAppClient *)client didReceiveLocalStream:(RTCMediaStream *)localStream
-{
-    if (self.localVideoTrack) {
-        [self.localVideoTrack removeRenderer:self.localView];
-        self.localVideoTrack = nil;
-        [self.localView renderFrame:nil];
-    }
-    self.localVideoTrack = localStream.videoTrack;
-    [self.localVideoTrack addRenderer:self.localView];
-    
-    self.label.text = @"Did add localStream";
-}
-
-- (void)appClient:(WebRTCAppClient *)client didReceiveRemoteStream:(RTCMediaStream *)remoteStream
-{
-    if (self.remoteVideoTrack) {
-        [self.remoteVideoTrack removeRenderer:self.remoteView];
-        self.remoteVideoTrack = nil;
-        [self.remoteView renderFrame:nil];
-    }
-    self.remoteVideoTrack = remoteStream.videoTrack;
-    [self.remoteVideoTrack addRenderer:self.remoteView];
-    
-    self.label.text = @"Did add remoteStream";
-}
-
 - (void)appClient:(WebRTCAppClient *)client didError:(NSError *)error
 {
     self.label.text = @"Error";
+}
+
+- (void)appClient:(WebRTCAppClient *)client didCreateLocalCapturer:(RTCCameraVideoCapturer *)localCapturer
+{
+    self.localVideoView.captureSession = localCapturer.captureSession;
+    self.captureController = [[WebRTCAppCaptureController alloc] initWithCapturer:localCapturer];
+    [self.captureController startCapture];
+}
+
+- (void)appClient:(WebRTCAppClient *)client didReceiveRemoteVideoTrack:(RTCVideoTrack *)remoteVideoTrack
+{
+    if (self.remoteVideoTrack == remoteVideoTrack) {
+        return;
+    }
+    
+    [self.remoteVideoTrack removeRenderer:self.remoteVideoView];
+    self.remoteVideoTrack = nil;
+    [self.remoteVideoView renderFrame:nil];
+    
+    self.remoteVideoTrack = remoteVideoTrack;
+    [self.remoteVideoTrack addRenderer:self.remoteVideoView];
 }
 
 

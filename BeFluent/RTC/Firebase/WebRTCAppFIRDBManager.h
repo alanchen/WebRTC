@@ -15,18 +15,17 @@
 
 +(WebRTCAppFIRDBManager *)sharedInstance;
 
--(void)getIceServersWithCompletion:(void (^)(NSArray *servers))completion;
+-(void)signInWithToken:(NSString *)token completion:(void (^)(BOOL success))completion;
 
--(void)sendMessage:(id)msg toRoom:(NSString *)roomId;
+-(void)getIceServersWithCompletion:(void (^)(NSArray *servers))completion;
+-(FIRDatabaseReference *)sendMessage:(id)msg toRoom:(NSString *)roomId;
+-(void)getAllMessagesOfRoom:(NSString *)roomId completion:(void (^)(NSEnumerator<FIRDataSnapshot *> *))completion;
 
 -(void)deleteDocRef:(FIRDatabaseReference *)docRef;
-
 -(void)deleteAllMessagesOfRoom:(NSString *)roomId completion:(void (^)(void))completion;
 
--(void)removeObserverThreadWithRoomId:(NSString *)roomId;
-
+-(void)removeCurrentObserver;
 -(void)observeThreadWithRoomId:(NSString *)roomId didAddWithBlock:(void (^)(FIRDataSnapshot *snapshot))block;
 
--(void)getAllMessagesOfRoom:(NSString *)roomId completion:(void (^)(NSEnumerator<FIRDataSnapshot *> *))completion;
 
 @end

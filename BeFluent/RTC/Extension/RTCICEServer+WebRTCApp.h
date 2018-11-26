@@ -7,11 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "RTCICEServer.h"
+#import <WebRTC/RTCIceServer.h>
 
-@interface RTCICEServer(WebRTCApp)
+@interface RTCIceServer(WebRTCApp)
 
-+ (RTCICEServer *)serverFromJSONDictionary:(NSDictionary *)dictionary;
++ (RTCIceServer *)serverFromJSONDictionary:(NSDictionary *)dictionary;
 
 + (NSArray *)serversFromJSONArray:(NSArray *)arr;
 

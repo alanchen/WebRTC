@@ -12,16 +12,16 @@ static NSString const *kRTCICECandidateMidKey = @"sdpMid";
 static NSString const *kRTCICECandidateMLineIndexKey = @"sdpMLineIndex";
 static NSString const *kRTCICECandidateSdpKey = @"candidate";
 
-@implementation RTCICECandidate(WebRTCApp)
+@implementation RTCIceCandidate(WebRTCApp)
 
-+ (RTCICECandidate *)candidateFromJSONDictionary:(NSDictionary *)dictionary
++ (RTCIceCandidate *)candidateFromJSONDictionary:(NSDictionary *)dictionary
 {
     NSString *mid = dictionary[kRTCICECandidateMidKey];
     NSString *sdp = dictionary[kRTCICECandidateSdpKey];
     NSNumber *num = dictionary[kRTCICECandidateMLineIndexKey];
-    NSInteger mLineIndex = [num integerValue];
+    int mLineIndex = [num intValue];
     
-    return [[RTCICECandidate alloc] initWithMid:mid index:mLineIndex sdp:sdp];
+   return [[RTCIceCandidate alloc] initWithSdp:sdp sdpMLineIndex:mLineIndex sdpMid:mid];
 }
 
 - (NSDictionary *)toJSONDictionary

@@ -6,7 +6,7 @@
 //  Copyright © 2018年 alan. All rights reserved.
 //
 
-#import "RTCSessionDescription.h"
+#import <WebRTC/RTCSessionDescription.h>
 
 @interface RTCSessionDescription(WebRTCApp)
 

@@ -19,16 +19,14 @@
     options.databaseURL = @"";
     options.storageBucket = @"";
     options.storageBucket = @"";
-    options.projectID = @"";
+    options.projectID = @"webrtc-8a23e";
     return options;
 }
 
 +(FIRApp *)webRTCApp
 {
-    [FIRApp configureWithName:@"webrtc" options:[self webRTCOptions]];
-    FIRApp *app = [FIRApp appNamed:@"webrtc"];
-    return app;
+    [FIRApp configureWithOptions:[self webRTCOptions]];
+    return [FIRApp defaultApp];
 }
-
 
 @end

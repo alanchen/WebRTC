@@ -14,18 +14,18 @@
 {
     NSString *desc = @"";
     
-    if(self.signalingState == RTCSignalingStable){
-        desc = @"RTCSignalingStable";
-    }else if(self.signalingState == RTCSignalingHaveLocalOffer){
-        desc = @"RTCSignalingHaveLocalOffer";
-    }else if(self.signalingState == RTCSignalingHaveLocalPrAnswer){
-        desc = @"RTCSignalingHaveLocalPrAnswer";
-    }else if(self.signalingState == RTCSignalingHaveRemoteOffer){
-        desc = @"RTCSignalingHaveRemoteOffer";
-    }else if(self.signalingState == RTCSignalingHaveRemotePrAnswer){
-        desc = @"RTCSignalingHaveRemotePrAnswer";
-    }else if(self.signalingState == RTCSignalingClosed){
-        desc = @"RTCSignalingClosed";
+    if(self.signalingState == RTCSignalingStateStable){
+        desc = @"RTCSignalingStateStable";
+    }else if(self.signalingState == RTCSignalingStateHaveLocalOffer){
+        desc = @"RTCSignalingStateHaveLocalOffer";
+    }else if(self.signalingState == RTCSignalingStateHaveLocalPrAnswer){
+        desc = @"RTCSignalingStateHaveLocalPrAnswer";
+    }else if(self.signalingState == RTCSignalingStateHaveRemoteOffer){
+        desc = @"RTCSignalingStateHaveRemoteOffer";
+    }else if(self.signalingState == RTCSignalingStateHaveRemotePrAnswer){
+        desc = @"RTCSignalingStateHaveRemotePrAnswer";
+    }else if(self.signalingState == RTCSignalingStateClosed){
+        desc = @"RTCSignalingStateClosed";
     }
     
     NSLog(@"Signaling state: %@", desc);
@@ -35,22 +35,22 @@
 {
     NSString *desc = @"";
     
-    if(self.iceConnectionState == RTCICEConnectionNew){
+    if(self.iceConnectionState == RTCIceConnectionStateNew){
         desc = @"RTCICEConnectionNew";
-    }else if(self.iceConnectionState == RTCICEConnectionChecking){
+    }else if(self.iceConnectionState == RTCIceConnectionStateChecking){
         desc = @"RTCICEConnectionChecking";
-    }else if(self.iceConnectionState == RTCICEConnectionConnected){
+    }else if(self.iceConnectionState == RTCIceConnectionStateConnected){
         desc = @"RTCICEConnectionConnected";
-    }else if(self.iceConnectionState == RTCICEConnectionCompleted){
+    }else if(self.iceConnectionState == RTCIceConnectionStateCompleted){
         desc = @"RTCICEConnectionCompleted";
-    }else if(self.iceConnectionState == RTCICEConnectionFailed){
+    }else if(self.iceConnectionState == RTCIceConnectionStateFailed){
         desc = @"RTCICEConnectionFailed";
-    }else if(self.iceConnectionState == RTCICEConnectionDisconnected){
+    }else if(self.iceConnectionState == RTCIceConnectionStateDisconnected){
         desc = @"RTCICEConnectionDisconnected";
-    }else if(self.iceConnectionState == RTCICEConnectionClosed){
+    }else if(self.iceConnectionState == RTCIceConnectionStateClosed){
         desc = @"RTCICEConnectionClosed";
-    }else if(self.iceConnectionState == RTCICEConnectionMax){
-        desc = @"RTCICEConnectionMax";
+    }else if(self.iceConnectionState == RTCIceConnectionStateCount){
+        desc = @"RTCIceConnectionStateCount";
     }
     
     NSLog(@"ICE state: %@", desc);
@@ -60,26 +60,15 @@
 {
     NSString *desc = @"";
     
-    if(self.iceGatheringState == RTCICEGatheringNew){
-        desc = @"RTCICEGatheringNew";
-    }else if(self.iceGatheringState == RTCICEGatheringGathering){
-        desc = @"RTCICEGatheringGathering";
-    }else if(self.iceGatheringState == RTCICEGatheringComplete){
-        desc = @"RTCICEGatheringComplete";
+    if(self.iceGatheringState == RTCIceGatheringStateNew){
+        desc = @"RTCIceGatheringStateNew";
+    }else if(self.iceGatheringState == RTCIceGatheringStateGathering){
+        desc = @"RTCIceGatheringStateGathering";
+    }else if(self.iceGatheringState == RTCIceGatheringStateComplete){
+        desc = @"RTCIceGatheringStateComplete";
     }
     
     NSLog(@"ICE gathering state: %@", desc);
-}
-
--(BOOL)isBadConnectState
-{
-    if(self.iceConnectionState == RTCICEConnectionFailed ||
-       self.iceConnectionState == RTCICEConnectionDisconnected ||
-       self.iceConnectionState == RTCICEConnectionClosed){
-        return YES;
-    }
-    
-    return NO;
 }
 
 @end

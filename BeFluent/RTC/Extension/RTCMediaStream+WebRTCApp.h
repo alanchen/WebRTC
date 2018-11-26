@@ -6,7 +6,7 @@
 //  Copyright © 2018 alan. All rights reserved.
 //
 
-#import "RTCMediaStream.h"
+#import <WebRTC/RTCMediaStream.h>
 
 @interface RTCMediaStream(WebRTCApp)
 

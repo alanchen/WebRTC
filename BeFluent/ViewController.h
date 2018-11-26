@@ -7,21 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
-
-@import Firebase;
-
-#import <AVFoundation/AVFoundation.h>
 #import "WebRTCAppClient.h"
 
 @interface ViewController : UIViewController
 
-@property (strong, nonatomic) RTCEAGLVideoView *localView;
-@property (strong, nonatomic) RTCEAGLVideoView *remoteView;
-@property (strong, nonatomic) RTCVideoTrack *localVideoTrack;
-@property (strong, nonatomic) RTCVideoTrack *remoteVideoTrack;
-
+@property (strong, nonatomic) RTCCameraPreviewView *localVideoView;
+@property (strong, nonatomic) __kindof UIView<RTCVideoRenderer> *remoteVideoView;
 @property (strong, nonatomic) UILabel *label;
-
 
 @end
 

@@ -9,14 +9,13 @@
 #import "WebRTCAppFIRDBManager.h"
 #import "FIRApp+WebRTCApp.h"
 
-
-static NSString *kRootCollectionName = @"webrtc-connection";
-static NSString *kRoomThreadCollectionName = @"message";
+static NSString *kChildName = @"call";
 
 @interface WebRTCAppFIRDBManager()
 
-@property (nonatomic,strong) FIRDatabaseReference *ref;
-@property (nonatomic,strong) NSMutableDictionary *listeners;
+@property (nonatomic,strong) FIRDatabaseReference *dbRef;
+@property (nonatomic,strong) FIRDatabaseReference *listeningRef;
+@property (nonatomic) FIRDatabaseHandle handle;
 @property (nonatomic,strong) NSMutableArray *iceServers;
 
 @end
@@ -28,15 +27,53 @@ static NSString *kRoomThreadCollectionName = @"message";
     static WebRTCAppFIRDBManager *sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+        sharedInstance = [[WebRTCAppFIRDBManager alloc] init];
+    });
+    
+    return sharedInstance;
+}
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
         FIRDatabase *db = [FIRDatabase databaseForApp:[FIRApp webRTCApp]];
         db.persistenceEnabled = NO;
         FIRDatabaseReference *ref = [db reference];
-        sharedInstance = [[WebRTCAppFIRDBManager alloc] init];
-        sharedInstance.ref = ref;
-        sharedInstance.listeners = [@{} mutableCopy];
-    });
+        self.dbRef = ref;
+    }
+    
+    return self;
+}
 
-    return sharedInstance;
+#pragma mark - Private
+
+-(FIRDatabaseReference *)referencWithRoomId:(NSString *)roomId
+{
+    FIRDatabaseReference *ref = [[self.dbRef child:kChildName] child:roomId];
+    return ref;
+}
+
+#pragma mark - Public
+
+-(void)signInWithToken:(NSString *)token completion:(void (^)(BOOL success))completion
+{
+    if(!token){
+        if(completion) completion(NO);
+        return;
+    }
+    
+    [[FIRAuth auth] signInWithCustomToken:token
+                               completion:^(FIRAuthDataResult * _Nullable authResult,  NSError * _Nullable error)
+     {
+         if(error){
+             NSLog(@"Firebase signin error %@", error);
+             if(completion) completion(NO);
+             return;
+         }
+         
+         if(completion) completion(YES);
+     }];
 }
 
 -(void)getIceServersWithCompletion:(void (^)(NSArray *servers))completion
@@ -45,10 +82,10 @@ static NSString *kRoomThreadCollectionName = @"message";
         if(completion) completion(self.iceServers);
         return;
     }
-    
-    [[self.ref child:@"ice"] observeSingleEventOfType:FIRDataEventTypeValue withBlock:^(FIRDataSnapshot * _Nonnull snapshot) {
+
+    [[self.dbRef child:@"ice"] observeSingleEventOfType:FIRDataEventTypeValue withBlock:^(FIRDataSnapshot * _Nonnull snapshot) {
         id data = snapshot.value;
-        
+
         NSMutableArray *result = [@[] mutableCopy];
         NSArray *s1 = [data objectForKey:@"stun"];
         NSArray *s2 = [data objectForKey:@"turn"];
@@ -58,26 +95,30 @@ static NSString *kRoomThreadCollectionName = @"message";
         if(s2 && [s2 isKindOfClass:[NSArray class]]){
             [result addObjectsFromArray:s2];
         }
-        
+
         if([result count]){
             self.iceServers = result;
         }
-        
+
         if(completion) completion( self.iceServers );
     }];
 }
 
--(FIRDatabaseReference *)referencWithRoomId:(NSString *)roomId
-{
-    FIRDatabaseReference *ref = [[[self.ref child:kRootCollectionName] child:roomId] child:kRoomThreadCollectionName];
-    return ref;
-}
-
--(void)sendMessage:(id)msg toRoom:(NSString *)roomId
+-(FIRDatabaseReference *)sendMessage:(id)msg toRoom:(NSString *)roomId
 {
     FIRDatabaseReference *ref = [[self referencWithRoomId:roomId] childByAutoId];
     [ref setValue:msg];
+    return ref;
 }
+
+-(void)getAllMessagesOfRoom:(NSString *)roomId completion:(void (^)(NSEnumerator<FIRDataSnapshot *> *))completion
+{
+    [[self referencWithRoomId:roomId] observeSingleEventOfType:FIRDataEventTypeValue withBlock:^(FIRDataSnapshot * _Nonnull snapshot) {
+        if(completion) completion([snapshot children]);
+    }];
+}
+
+#pragma mark -
 
 -(void)deleteDocRef:(FIRDatabaseReference *)ref
 {
@@ -88,42 +129,36 @@ static NSString *kRoomThreadCollectionName = @"message";
 
 -(void)deleteAllMessagesOfRoom:(NSString *)roomId completion:(void (^)(void))completion
 {
-    FIRDatabaseReference *ref = [[[self.ref child:kRootCollectionName] child:roomId] child:kRoomThreadCollectionName];
+    FIRDatabaseReference *ref = [self referencWithRoomId:roomId];
     [ref removeValueWithCompletionBlock:^(NSError * _Nullable error, FIRDatabaseReference * _Nonnull ref) {
         if(completion) completion();
     }];
 }
 
--(void)removeObserverThreadWithRoomId:(NSString *)roomId
+#pragma mark -
+
+-(void)removeCurrentObserver
 {
-    id listener = [self.listeners objectForKey:roomId];
-    if(listener){
-        [(FIRDatabaseReference *)listener removeAllObservers];
-        [self.listeners removeObjectForKey:roomId];
+    if(self.listeningRef && self.handle){
+        [self.listeningRef removeObserverWithHandle:self.handle];
     }
+    
+    self.listeningRef = nil;
+    self.handle = 0;
 }
 
 -(void)observeThreadWithRoomId:(NSString *)roomId didAddWithBlock:(void (^)(FIRDataSnapshot *snapshot))block
 {
-    [self removeObserverThreadWithRoomId:roomId];
-    
+    [self removeCurrentObserver];
+
     FIRDatabaseReference *ref = [self referencWithRoomId:roomId];
-    [ref observeEventType:FIRDataEventTypeChildAdded withBlock:^(FIRDataSnapshot * _Nonnull snapshot) {
+    self.listeningRef = ref;
+    self.handle = [ref observeEventType:FIRDataEventTypeChildAdded withBlock:^(FIRDataSnapshot * _Nonnull snapshot) {
         if(snapshot && block){
             block(snapshot);
         }
     }];
-    
-    if(ref){
-        [self.listeners setObject:ref forKey:roomId];
-    }
 }
 
--(void)getAllMessagesOfRoom:(NSString *)roomId completion:(void (^)(NSEnumerator<FIRDataSnapshot *> *))completion
-{
-    [[self referencWithRoomId:roomId] observeSingleEventOfType:FIRDataEventTypeValue withBlock:^(FIRDataSnapshot * _Nonnull snapshot) {
-        if(completion) completion([snapshot children]);
-    }];
-}
 
 @end

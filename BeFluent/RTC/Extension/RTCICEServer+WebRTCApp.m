@@ -8,25 +8,25 @@
 
 #import "RTCICEServer+WebRTCApp.h"
 
-@implementation RTCICEServer(WebRTCApp)
+@implementation RTCIceServer(WebRTCApp)
 
-+ (RTCICEServer *)serverFromJSONDictionary:(NSDictionary *)dictionary
++ (RTCIceServer *)serverFromJSONDictionary:(NSDictionary *)dictionary
 {
     NSString *url = dictionary[@"url"];
-    NSString *credential = dictionary[@"credential"];
-    NSString *username = dictionary[@"username"];
+    NSString *credential = dictionary[@"credential"]?: @"";
+    NSString *username = dictionary[@"username"]?: @"";
     if(!url || [url length] ==0){
         return nil;
     }
 
-    return [[RTCICEServer alloc] initWithURI:[NSURL URLWithString:url] username:username password:credential];
+    return [[RTCIceServer alloc] initWithURLStrings:@[url] username:username credential:credential];
 }
 
 + (NSArray *)serversFromJSONArray:(NSArray *)arr
 {
     NSMutableArray *result = [@[] mutableCopy];
     [arr enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        RTCICEServer *server = [RTCICEServer serverFromJSONDictionary:obj];
+        RTCIceServer *server = [RTCIceServer serverFromJSONDictionary:obj];
         if(server)  [result addObject:server];
     }];
     

@@ -8,8 +8,7 @@
 
 #import "AppDelegate.h"
 #import "ViewController.h"
-#import "RTCPeerConnectionFactory.h"
-#import "WebRTCAppFirestoreManager.h"
+#import "WebRTCAppClient.h"
 
 @interface AppDelegate ()
 
@@ -19,13 +18,11 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-  
-    [RTCPeerConnectionFactory initializeSSL];
+    [WebRTCAppClient RTCInitialize];
 
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.rootViewController = [[ViewController alloc] init];
     [self.window makeKeyAndVisible];
-    
     return YES;
 }
 

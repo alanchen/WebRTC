@@ -10,16 +10,57 @@
 #import "WebRTCAppClient+Defaults.h"
 #import "WebRTCAppFIRDBManager.h"
 
-@interface WebRTCAppClient() <RTCPeerConnectionDelegate, RTCSessionDescriptionDelegate>
+static NSString * const kARDMediaStreamId = @"ARDAMS";
+static NSString * const kARDAudioTrackId = @"ARDAMSa0";
+static NSString * const kARDVideoTrackId = @"ARDAMSv0";
+static NSString * const kARDVideoTrackKind = @"video";
 
+@interface WebRTCAppClient() <RTCPeerConnectionDelegate>
 @property (nonatomic, strong) RTCPeerConnection *peerConnection;
 @property (nonatomic, strong) RTCPeerConnectionFactory *factory;
+@property (nonatomic, strong) RTCVideoTrack *localVideoTrack;
 @property (nonatomic, assign) BOOL isCaller;
-@property (nonatomic, assign) BOOL isSpeakerEnabled;
-
 @end
 
 @implementation WebRTCAppClient
+
++(void)RTCInitialize
+{
+    NSDictionary *fieldTrials = @{};
+    RTCInitFieldTrialDictionary(fieldTrials);
+    RTCInitializeSSL();
+    RTCSetupInternalTracer();
+}
+
++(void)enableSpeaker
+{
+    [RTCDispatcher dispatchAsyncOnType:RTCDispatcherTypeAudioSession
+                                 block:^
+     {
+         RTCAudioSession *session = [RTCAudioSession sharedInstance];
+         [session lockForConfiguration];
+         NSError *error = nil;
+         if (![session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error]) {
+             RTCLogError(@"Error overriding output port: %@", error.localizedDescription);
+         }
+         [session unlockForConfiguration];
+     }];
+}
+
++(void)disableSpeaker
+{
+    [RTCDispatcher dispatchAsyncOnType:RTCDispatcherTypeAudioSession
+                                 block:^
+     {
+         RTCAudioSession *session = [RTCAudioSession sharedInstance];
+         [session lockForConfiguration];
+         NSError *error = nil;
+         if (![session overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:&error]) {
+             RTCLogError(@"Error overriding output port: %@", error.localizedDescription);
+         }
+         [session unlockForConfiguration];
+     }];
+}
 
 - (instancetype)initWithDelegate:(id<WebRTCAppClientDelegate>)delegate
                             type:(WebRTCAppClientStreamType)type
@@ -32,10 +73,13 @@
         _connectId = connectId;
         _userId = userId;
         
-        _factory = [[RTCPeerConnectionFactory alloc] init];
-        _cameraPosition = AVCaptureDevicePositionFront;
+        RTCDefaultVideoDecoderFactory *decoderFactory = [[RTCDefaultVideoDecoderFactory alloc] init];
+        RTCDefaultVideoEncoderFactory *encoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
+        RTCVideoCodecInfo *encodeInfo = [[RTCDefaultVideoEncoderFactory supportedCodecs] firstObject];
+        if(encodeInfo) { encoderFactory.preferredCodec = encodeInfo; }
+        _factory = [[RTCPeerConnectionFactory alloc] initWithEncoderFactory:encoderFactory
+                                                             decoderFactory:decoderFactory];
         _isCaller = NO;
-        _isSpeakerEnabled = NO;
     }
     
     return self;
@@ -43,7 +87,7 @@
 
 - (void)dealloc
 {
-    NSLog(@"dealloc");
+    RTCLog(@"WebRTCAppClient dealloc");
     [self disconnect];
 }
 
@@ -63,34 +107,26 @@
 
 - (void)disconnect
 {
-    NSLog(@"WebRTCApp Disconnect");
     if (!_userId || !_connectId) {
         return;
     }
-    __weak __typeof(self) weakSelf = self;
-    [weakSelf setConnectState:WebRTCAppClientStateDisconnected];
 
-    [[WebRTCAppFIRDBManager sharedInstance] removeObserverThreadWithRoomId:_connectId];
+    RTCLog(@"WebRTCApp Disconnect");
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [[WebRTCAppFIRDBManager sharedInstance] removeCurrentObserver];
     [[WebRTCAppFIRDBManager sharedInstance] deleteAllMessagesOfRoom:_connectId completion:nil];
-
+    [self setConnectState:WebRTCAppClientStateDisconnected];
+    [self sendBye];
+    
     _connectId = nil;
     _userId = nil;
     _isCaller = NO;
     _delegate = nil;
-
+    _localVideoTrack = nil;
+    
     _peerConnection.delegate = nil;
     [_peerConnection close];
     _peerConnection = nil;
-}
-
-- (void)enableSpeaker {
-    [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
-    _isSpeakerEnabled = YES;
-}
-
-- (void)disableSpeaker {
-    [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
-    _isSpeakerEnabled = NO;
 }
 
 #pragma mark - Private
@@ -101,45 +137,42 @@
         NSAssert(NO, @"No user ID or connect ID");
         return;
     }
+    
     if (_state != WebRTCAppClientStateDisconnected) {
         return;
     }
     
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(disconnect)
+                                                 name:UIApplicationWillTerminateNotification
+                                               object:nil];
+    
     [self setConnectState:WebRTCAppClientStateConnecting];
+    
     __weak __typeof(self) weakSelf = self;
     [[WebRTCAppFIRDBManager sharedInstance] getIceServersWithCompletion:^(NSArray *servers) {
         NSLog(@"ice servers %@",servers);
         
         NSArray *iceServers = @[[weakSelf defaultSTUNServer]];
         if([servers count]){
-            iceServers = [RTCICEServer serversFromJSONArray:servers];
+            iceServers = [RTCIceServer serversFromJSONArray:servers];
         }
         
         /////////////////////////////////////////
         // Create peerConnection with ice server
         /////////////////////////////////////////
         RTCMediaConstraints *constraints = [weakSelf defaultPeerConnectionConstraints];
-        weakSelf.peerConnection = [weakSelf.factory peerConnectionWithICEServers:iceServers constraints:constraints delegate:weakSelf];
+        RTCConfiguration *config = [RTCConfiguration configurationWithIceServers:iceServers];
+        [weakSelf.factory peerConnectionWithConfiguration:config
+                                          constraints:constraints
+                                             delegate:weakSelf];
+        weakSelf.peerConnection = [weakSelf.factory peerConnectionWithConfiguration:config constraints:constraints delegate:weakSelf];
         
         ////////////////////////////////////////
         // Create local stream
         /////////////////////////////////////////
-        RTCMediaStream* localStream = [weakSelf.factory mediaStreamWithLabel:@"ARDAMS"];
-        if(weakSelf.mediaStreamType == WebRTCAppClientStreamTypeVideo){
-            RTCVideoTrack *localVideoTrack = [weakSelf createLocalVideoTrackWithCameraPosition:weakSelf.cameraPosition];
-            if (localVideoTrack) {
-                [localStream addVideoTrack:localVideoTrack];
-            }
-        }
-        
-        RTCAudioTrack *localAudioTrack = [weakSelf createLocalAudioTrack];
-        if (localAudioTrack) {
-            [localStream addAudioTrack:localAudioTrack];
-        }
-        
-        [weakSelf.peerConnection addStream:localStream];
-        [weakSelf.delegate appClient:weakSelf didReceiveLocalStream:localStream];
-        
+        [weakSelf createMediaSenders];
+
         ////////////////////////////////////////
         // Process signaling messages
         /////////////////////////////////////////
@@ -161,39 +194,44 @@
                         [weakSelf processSignalingMessage:snapshot];
                     }
                 }];
-
                 [weakSelf addSignalingMessagesObserver];
             }];
-
         }
     }];
 }
 
 -(void)addSignalingMessagesObserver
 {
-    [[WebRTCAppFIRDBManager sharedInstance] observeThreadWithRoomId:self.connectId didAddWithBlock:^(FIRDataSnapshot *snapshot) {
-        [self processSignalingMessage:snapshot];
-    }];
+    __weak __typeof(self) weakSelf = self;
+    [[WebRTCAppFIRDBManager sharedInstance] observeThreadWithRoomId:self.connectId
+                                                    didAddWithBlock:^(FIRDataSnapshot *snapshot)
+     {
+         [weakSelf processSignalingMessage:snapshot];
+     }];
 }
 -(void)processSignalingMessage:(FIRDataSnapshot *)snapshot
 {
     id data = snapshot.value;
-//    NSLog(@"Get a message %@",data);
     
     WebRTCAppSignalingMessage *msg = [WebRTCAppSignalingMessage messageFromJSON:data];
+    NSLog(@"Process a message. type: %@", msg.type);
+
     if([msg.sender isEqualToString:self.userId]){
 //      NSLog(@"Get a message belongs to me. IGNORE!");
-        return ;
+        return;
     }
     
-    if(msg.ice){
-        NSLog(@"Get an ICE message");
-        RTCICECandidate *c = [RTCICECandidate candidateFromJSONDictionary:msg.ice];
-        [self.peerConnection addICECandidate:c];
-    }else if(msg.sdp){
-        NSLog(@"Get a SDP message: %@", msg.sdpType);
+    if([msg isIce]){
+        RTCIceCandidate *c = [RTCIceCandidate candidateFromJSONDictionary:msg.ice];
+        [self.peerConnection addIceCandidate:c];
+    }else if([msg isSDP]){
         RTCSessionDescription *d = [RTCSessionDescription descriptionFromJSONDictionary:msg.sdp];
-        [self.peerConnection setRemoteDescriptionWithDelegate:self sessionDescription:d];
+        __weak __typeof(self) weakSelf = self;
+        [self.peerConnection setRemoteDescription:d completionHandler:^(NSError * _Nullable error) {
+            [weakSelf peerConnection:weakSelf.peerConnection didSetSessionDescriptionWithError:error];
+        }];
+    }else if([msg isBye]){
+        [self disconnect];
     }
     
     [[WebRTCAppFIRDBManager sharedInstance] deleteDocRef:snapshot.ref];
@@ -201,16 +239,32 @@
 
 -(void)createOffer
 {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-        [self.peerConnection createOfferWithDelegate:self constraints:[self defaultOfferConstraints]];
-    });
+    RTCMediaConstraints *constraints = nil;
+    if(self.mediaStreamType == WebRTCAppClientStreamTypeAudio){
+        constraints = [self defaultOfferAudioOnlyConstraints];
+    }else{
+        constraints = [self defaultOfferConstraints];
+    }
+    
+    __weak __typeof(self) weakSelf = self;
+    [self.peerConnection offerForConstraints:constraints completionHandler:^(RTCSessionDescription * _Nullable sdp, NSError * _Nullable error) {
+        [weakSelf peerConnection:weakSelf.peerConnection didCreateSessionDescription:sdp error:error];
+    }];
 }
 
 -(void)createAnswer
 {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-        [self.peerConnection createAnswerWithDelegate:self constraints:[self defaultAnswerConstraints]];
-    });
+    RTCMediaConstraints *constraints = nil;
+    if(self.mediaStreamType == WebRTCAppClientStreamTypeAudio){
+        constraints = [self defaultAnswerAudioOnlyConstraints];
+    }else{
+        constraints = [self defaultAnswerConstraints];
+    }
+    
+    __weak __typeof(self) weakSelf = self;
+    [self.peerConnection answerForConstraints:constraints completionHandler:^(RTCSessionDescription * _Nullable sdp, NSError * _Nullable error) {
+        [weakSelf peerConnection:weakSelf.peerConnection didCreateSessionDescription:sdp error:error];
+    }];
 }
 
 -(void)setConnectState:(WebRTCAppClientState) state;
@@ -222,65 +276,82 @@
     [self.delegate appClient:self didChangeState:_state];
 }
 
+-(void)sendBye
+{
+    if(_userId && _connectId){
+        id byeMsg = [WebRTCAppSignalingMessage createByebyeWithSender:_userId];
+        FIRDatabaseReference *ref = [[WebRTCAppFIRDBManager sharedInstance] sendMessage:byeMsg toRoom:_connectId];
+        [[WebRTCAppFIRDBManager sharedInstance] deleteDocRef:ref];
+    }
+}
+
 #pragma mark - MediaStream
+
+- (RTCRtpTransceiver *)videoTransceiver
+{
+    for (RTCRtpTransceiver *transceiver in _peerConnection.transceivers) {
+        if (transceiver.mediaType == RTCRtpMediaTypeVideo) {
+            return transceiver;
+        }
+    }
+    return nil;
+}
+
+- (RTCRtpTransceiver *)audioTransceiver
+{
+    for (RTCRtpTransceiver *transceiver in _peerConnection.transceivers) {
+        if (transceiver.mediaType == RTCRtpMediaTypeAudio) {
+            return transceiver;
+        }
+    }
+    return nil;
+}
+
+- (RTCVideoTrack *)createLocalVideoTrack
+{
+    RTCVideoSource *source = [_factory videoSource];
+    RTCCameraVideoCapturer *capturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:source];
+    [_delegate appClient:self didCreateLocalCapturer:capturer];
+    return [_factory videoTrackWithSource:source trackId:kARDVideoTrackId];
+}
 
 - (RTCAudioTrack *)createLocalAudioTrack
 {
-    RTCAudioTrack *localAudioTrack = [self.factory audioTrackWithID:@"ARDAMSa0"];
-    return localAudioTrack;
+    RTCMediaConstraints *constraints = [self defaultMediaAudioConstraints];
+    RTCAudioSource *source = [_factory audioSourceWithConstraints:constraints];
+    RTCAudioTrack *track = [_factory audioTrackWithSource:source trackId:kARDAudioTrackId];
+    return track;
 }
 
-- (RTCVideoTrack *)createLocalVideoTrackWithCameraPosition:(AVCaptureDevicePosition)position
+- (void)createMediaSenders
 {
-    RTCVideoTrack *localVideoTrack = nil;
-#if !TARGET_IPHONE_SIMULATOR && TARGET_OS_IPHONE
-    NSArray *deviceTypes = @[AVCaptureDeviceTypeBuiltInWideAngleCamera];
-    AVCaptureDeviceDiscoverySession *session =
-    [AVCaptureDeviceDiscoverySession discoverySessionWithDeviceTypes:deviceTypes
-                                                           mediaType:AVMediaTypeVideo
-                                                            position:position];
-    NSString *cameraID = nil;
-    for (AVCaptureDevice *captureDevice in [session devices]) {
-        if (captureDevice.position == position) {
-            cameraID = [captureDevice localizedName];
-            break;
+    RTCAudioTrack *track = [self createLocalAudioTrack];
+    if (track) {
+        [_peerConnection addTrack:track streamIds:@[ kARDMediaStreamId ]];
+        if([_delegate respondsToSelector:@selector(appClient:didReceiveLocalAudioTrack:)]){
+            [_delegate appClient:self didReceiveLocalAudioTrack:track];
         }
     }
-    NSAssert(cameraID, @"Unable to get the camera id");
-    RTCVideoCapturer *capturer = [RTCVideoCapturer capturerWithDeviceName:cameraID];
-    RTCMediaConstraints *mediaConstraints = [self defaultMediaStreamConstraints];
-    RTCVideoSource *videoSource = [_factory videoSourceWithCapturer:capturer constraints:mediaConstraints];
-    localVideoTrack = [_factory videoTrackWithID:@"ARDAMSv0" source:videoSource];
-#endif
-    return localVideoTrack;
-}
-
--(void)setCameraPosition:(AVCaptureDevicePosition)cameraPosition
-{
-    if(_mediaStreamType != WebRTCAppClientStreamTypeVideo)
-        return;
     
-    if(_cameraPosition == cameraPosition)
-        return;
-    
-    if([_peerConnection.localStreams count] == 0)
-        return;
-
-    RTCMediaStream *localStream = _peerConnection.localStreams[0];
-    if([localStream.videoTracks count] == 0)
-        return;
-    
-    _cameraPosition = cameraPosition;
-    [localStream removeVideoTrack:localStream.videoTracks[0]];
-    RTCVideoTrack *localVideoTrack = [self createLocalVideoTrackWithCameraPosition:_cameraPosition];
-    if (localVideoTrack) {
-        [localStream addVideoTrack:localVideoTrack];
+    if(self.mediaStreamType == WebRTCAppClientStreamTypeVideo){
+        _localVideoTrack = [self createLocalVideoTrack];
+        if (_localVideoTrack) {
+            [_peerConnection addTrack:_localVideoTrack streamIds:@[ kARDMediaStreamId ]];
+            if([_delegate respondsToSelector:@selector(appClient:didReceiveLocalVideoTrack:)]){
+                [_delegate appClient:self didReceiveLocalVideoTrack:_localVideoTrack];
+            }
+            // We can set up rendering for the remote track right away since the transceiver already has an
+            // RTCRtpReceiver with a track. The track will automatically get unmuted and produce frames
+            // once RTP is received.
+            RTCVideoTrack *track = (RTCVideoTrack *)([self videoTransceiver].receiver.track);
+            [_delegate appClient:self didReceiveRemoteVideoTrack:track];
+            
+            RTCAudioTrack *track_a = (RTCAudioTrack *)([self audioTransceiver].receiver.track);
+            if([_delegate respondsToSelector:@selector(appClient:didReceiveRemoteAudioTrack:)]){
+                [_delegate appClient:self didReceiveRemoteAudioTrack:track_a];
+            }
+        }
     }
-    
-    [_peerConnection removeStream:localStream];
-    [_peerConnection addStream:localStream];
-    
-    [_delegate appClient:self didReceiveLocalStream:localStream];
 }
 
 #pragma mark - RTCSessionDescriptionDelegate
@@ -288,114 +359,117 @@
 // Called when creating a session.
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didCreateSessionDescription:(RTCSessionDescription *)sdp error:(NSError *)error
 {
-    NSLog(@"Did Create SDP: %@", sdp.type);
+    RTCLog(@"Did Create SDP: %@", [RTCSessionDescription stringForType:sdp.type]);
     dispatch_async(dispatch_get_main_queue(), ^{
         if (error || !sdp) {
-            NSLog(@"Failed to create session description. Error: %@", error);
+            RTCLog(@"Failed to create session description. Error: %@", error);
             [self.delegate appClient:self didError:[NSError errorCreateSDP]];
             [self disconnect];
             return;
         }
-        [self.peerConnection setLocalDescriptionWithDelegate:self sessionDescription:sdp];
+        __weak __typeof(self) weakSelf = self;
+        [self.peerConnection setLocalDescription:sdp completionHandler:^(NSError * _Nullable error) {
+            [weakSelf peerConnection:weakSelf.peerConnection didSetSessionDescriptionWithError:error];
+        }];
+        
+        id msg = [WebRTCAppSignalingMessage createSdpPayloadWithSender:self.userId sdp:[sdp toJSONDictionary]];
+        [[WebRTCAppFIRDBManager sharedInstance] sendMessage:msg toRoom:self.connectId];
     });
 }
 
 // Called when setting a local or remote description.
 - (void)peerConnection:(RTCPeerConnection *)peerConnection didSetSessionDescriptionWithError:(NSError *)error
 {
-    NSLog(@"Did Set SDP");
+    RTCLog(@"Did Set SDP");
     dispatch_async(dispatch_get_main_queue(), ^{
         if (error) {
-            NSLog(@"Failed to set session description. Error: %@", error);
+            RTCLog(@"Failed to set session description. Error: %@", error);
             [self.delegate appClient:self didError:[NSError errorSetSDP]];
             [self disconnect];
             return;
         }
         
-        if (peerConnection.signalingState == RTCSignalingHaveRemoteOffer){
+        // If we're answering and we've just set the remote offer we need to create
+        // an answer and set the local description.
+        if (!self.isCaller && !self.peerConnection.localDescription) {
             [self createAnswer];
-        }else if (peerConnection.signalingState == RTCSignalingHaveLocalPrAnswer){
-            
-        }else if (peerConnection.signalingState == RTCSignalingHaveLocalOffer){
-            RTCSessionDescription *sdp = peerConnection.localDescription;
-            if(sdp){
-                id msg = [WebRTCAppSignalingMessage createSdpPayloadWithSender:self.userId sdp:[sdp toJSONDictionary]];
-                [[WebRTCAppFIRDBManager sharedInstance] sendMessage:msg toRoom:self.connectId];
-            }
-        }else if (peerConnection.signalingState == RTCSignalingHaveRemotePrAnswer){
-            
-        }else if (peerConnection.signalingState == RTCSignalingStable) {
-            RTCSessionDescription *sdp = peerConnection.localDescription;
-            if( [sdp.type isEqualToString:@"answer"] ){
-                id msg = [WebRTCAppSignalingMessage createSdpPayloadWithSender:self.userId sdp:[sdp toJSONDictionary]];
-                [[WebRTCAppFIRDBManager sharedInstance] sendMessage:msg toRoom:self.connectId];
-            }
         }
     });
 }
 
 #pragma mark - RTCPeerConnectionDelegate
 
-- (void)peerConnection:(RTCPeerConnection *)peerConnection signalingStateChanged:(RTCSignalingState)stateChanged
+- (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeSignalingState:(RTCSignalingState)stateChanged
 {
-    NSLog(@"Signaling state changed: %d", stateChanged);
+    RTCLog(@"Signaling state changed: %ld", (long)stateChanged);
     [peerConnection logRTCSignalingState];
 }
 
-- (void)peerConnection:(RTCPeerConnection *)peerConnection addedStream:(RTCMediaStream *)stream
+- (void)peerConnection:(RTCPeerConnection *)peerConnection  didAddStream:(RTCMediaStream *)stream
 {
-    __weak __typeof(self) weakSelf = self;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [stream debugLog];
-        [weakSelf.delegate appClient:weakSelf didReceiveRemoteStream:stream];
-    });
-    
-    if (self.isSpeakerEnabled)
-        [self enableSpeaker];
+    RTCLog(@"Stream with %lu video tracks and %lu audio tracks was added.",
+           (unsigned long)stream.videoTracks.count,
+           (unsigned long)stream.audioTracks.count);
 }
 
-- (void)peerConnection:(RTCPeerConnection *)peerConnection removedStream:(RTCMediaStream *)stream
+- (void)peerConnection:(RTCPeerConnection *)peerConnection didRemoveStream:(RTCMediaStream *)stream
 {
-    NSLog(@"Stream was removed.");
+    RTCLog(@"Stream was removed.");
 }
 
-- (void)peerConnectionOnRenegotiationNeeded:(RTCPeerConnection *)peerConnection
+- (void)peerConnectionShouldNegotiate:(RTCPeerConnection *)peerConnection
 {
-//    NSLog(@"WARNING: Renegotiation needed but unimplemented.");
-//    NSLog(@"PCO onRenegotiationNeeded - ignoring because AppRTC has a "
-//          "predefined negotiation strategy");
+    RTCLog(@"WARNING: Renegotiation needed but unimplemented.");
 }
 
-- (void)peerConnection:(RTCPeerConnection *)peerConnection iceConnectionChanged:(RTCICEConnectionState)newState
+- (void)peerConnection:(RTCPeerConnection *)peerConnection didStartReceivingOnTransceiver:(RTCRtpTransceiver *)transceiver
 {
-    NSLog(@"ICE state changed: %d", newState);
+    RTCMediaStreamTrack *track = transceiver.receiver.track;
+    RTCLog(@"Now receiving %@ on track %@.", track.kind, track.trackId);
+}
+
+- (void)peerConnection:(RTCPeerConnection*)peerConnection didOpenDataChannel:(RTCDataChannel*)dataChannel
+{
+    RTCLog(@"didOpenDataChannel");
+}
+
+- (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeIceConnectionState:(RTCIceConnectionState)newState
+{
+    RTCLog(@"ICE state changed: %ld", (long)newState);
     [peerConnection logRTCICEConnectionState];
     
-    if([peerConnection isBadConnectState]){
-        [self disconnect];
-    }else if(peerConnection.iceConnectionState == RTCICEConnectionConnected ||
-             peerConnection.iceConnectionState == RTCICEConnectionCompleted){
+    if(peerConnection.iceConnectionState == RTCIceConnectionStateConnected ||
+       peerConnection.iceConnectionState == RTCIceConnectionStateCompleted) {
         [self setConnectState:WebRTCAppClientStateConnected];
+    }else  if(peerConnection.iceConnectionState == RTCIceConnectionStateFailed ||
+              peerConnection.iceConnectionState == RTCIceConnectionStateDisconnected ||
+              peerConnection.iceConnectionState == RTCIceConnectionStateClosed) {
+        [self disconnect];
     }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if([self.delegate respondsToSelector:@selector(appClient:didChangeConnectionState:)]){
+            [self.delegate appClient:self didChangeConnectionState:newState];
+        }
+    });
 }
 
-- (void)peerConnection:(RTCPeerConnection *)peerConnection iceGatheringChanged:(RTCICEGatheringState)newState
+- (void)peerConnection:(RTCPeerConnection *)peerConnection didChangeIceGatheringState:(RTCIceGatheringState)newState
 {
-    NSLog(@"ICE gathering state changed: %d", newState);
+    RTCLog(@"ICE gathering state changed: %ld", (long)newState);
     [peerConnection logRTCICEGatheringState];
 }
 
-- (void)peerConnection:(RTCPeerConnection *)peerConnection gotICECandidate:(RTCICECandidate *)candidate
-{
+- (void)peerConnection:(RTCPeerConnection *)peerConnection didGenerateIceCandidate:(RTCIceCandidate *)candidate {
     dispatch_async(dispatch_get_main_queue(), ^{
         id msg = [WebRTCAppSignalingMessage createIcePayloadWithSender:self.userId candidate:[candidate toJSONDictionary]];
         [[WebRTCAppFIRDBManager sharedInstance] sendMessage:msg toRoom:self.connectId];
     });
 }
 
-- (void)peerConnection:(RTCPeerConnection*)peerConnection didOpenDataChannel:(RTCDataChannel*)dataChannel
+- (void)peerConnection:(RTCPeerConnection *)peerConnection didRemoveIceCandidates:(NSArray<RTCIceCandidate *> *)candidates
 {
-    
+    RTCLog(@"didRemoveIceCandidates");
 }
 
 @end
