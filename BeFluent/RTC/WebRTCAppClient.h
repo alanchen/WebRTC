@@ -8,17 +8,19 @@
 
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
-#import "WebRTCAppHeader.h"
+#import <WebRTC/WebRTC.h>
+
 #import "WebRTCAppUtilities.h"
+#import "WebRTCAppSignalingMessage.h"
+
 #import "RTCICECandidate+WebRTCApp.h"
 #import "RTCSessionDescription+WebRTCApp.h"
 #import "RTCICEServer+WebRTCApp.h"
 #import "RTCMediaStream+WebRTCApp.h"
-#import "WebRTCAppSignalingMessage.h"
 #import "NSError+WebRTCApp.h"
 #import "RTCPeerConnection+WebRTCAApp.h"
 #import "RTCConfiguration+WebRTCApp.h"
-
+#import "RTCEAGLVideoView+WebRTCApp.h"
 
 typedef NS_ENUM(NSInteger, WebRTCAppClientState){
     WebRTCAppClientStateDisconnected,
@@ -69,5 +71,6 @@ typedef NS_ENUM(NSInteger, WebRTCAppClientStreamType){
 -(void)connectAsCaller;
 -(void)connectAsCallee;
 -(void)disconnect;
+-(void)setMaxBitrateForPeerConnectionVideoSender:(NSInteger)maxBitrate;
 
 @end

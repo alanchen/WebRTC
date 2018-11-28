@@ -20,6 +20,7 @@
 - (void)startCapture;
 - (void)stopCapture;
 - (void)switchCamera;
+- (void)switchToRsolution:(WebRTCAppVideoResolution *) r;
 
 + (NSArray<WebRTCAppVideoResolution *>  *)availableVideoResolutions;
 

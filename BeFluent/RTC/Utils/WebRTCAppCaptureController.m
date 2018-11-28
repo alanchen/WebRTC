@@ -29,6 +29,20 @@ const Float64 kFramerateLimit = 30.0;
 - (instancetype)initWithCapturer:(RTCCameraVideoCapturer *)capturer
 {
     if (self = [super init]) {
+    /*  192x144
+        352x288
+        480x360
+        640x480
+        960x540
+        1280x720
+        1440x1080
+        1920x1080
+        2592x1936
+        3088x2320
+        3264x2448
+        3840x2160
+        4032x3024 */
+        
         WebRTCAppVideoResolution *resolution = [WebRTCAppVideoResolution resolutionWithWidth:640 height:480];
         _capturer = capturer;
         _resolution = resolution;
@@ -58,6 +72,15 @@ const Float64 kFramerateLimit = 30.0;
 
 - (void)switchCamera {
     _usingFrontCamera = !_usingFrontCamera;
+    [self startCapture];
+}
+
+- (void)switchToRsolution:(WebRTCAppVideoResolution *) r
+{
+    if(r){
+        _resolution = r;
+    }
+    
     [self startCapture];
 }
 
@@ -129,6 +152,15 @@ const Float64 kFramerateLimit = 30.0;
     }];
     
     return sortedResolutions;
+}
+
+
++(void)printAllAvailableVideoResolutions
+{
+    NSArray<WebRTCAppVideoResolution *> *arr = [WebRTCAppCaptureController availableVideoResolutions];
+    [arr enumerateObjectsUsingBlock:^(WebRTCAppVideoResolution * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSLog(@"%@",obj.string);
+    }];
 }
 
 @end

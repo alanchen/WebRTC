@@ -19,7 +19,7 @@
     options.databaseURL = @"";
     options.storageBucket = @"";
     options.storageBucket = @"";
-    options.projectID = @"webrtc-8a23e";
+    options.projectID = @"";
     return options;
 }
 

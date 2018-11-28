@@ -9,11 +9,13 @@
 #import "WebRTCAppClient.h"
 #import "WebRTCAppClient+Defaults.h"
 #import "WebRTCAppFIRDBManager.h"
+#import "WebRTCAppCaptureController.h"
 
 static NSString * const kARDMediaStreamId = @"ARDAMS";
 static NSString * const kARDAudioTrackId = @"ARDAMSa0";
 static NSString * const kARDVideoTrackId = @"ARDAMSv0";
 static NSString * const kARDVideoTrackKind = @"video";
+static int const kKbpsMultiplier = 1000;
 
 @interface WebRTCAppClient() <RTCPeerConnectionDelegate>
 @property (nonatomic, strong) RTCPeerConnection *peerConnection;
@@ -129,6 +131,17 @@ static NSString * const kARDVideoTrackKind = @"video";
     _peerConnection = nil;
 }
 
+- (void)setMaxBitrateForPeerConnectionVideoSender:(NSInteger)maxBitrate
+{
+    for (RTCRtpSender *sender in _peerConnection.senders) {
+        if (sender.track != nil) {
+            if ([sender.track.kind isEqualToString:kARDVideoTrackKind]) {
+                [self setMaxBitrate:@(maxBitrate) forVideoSender:sender];
+            }
+        }
+    }
+}
+
 #pragma mark - Private
 
 -(void)connect
@@ -142,6 +155,7 @@ static NSString * const kARDVideoTrackKind = @"video";
         return;
     }
     
+    [UIApplication sharedApplication].idleTimerDisabled = YES;
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(disconnect)
                                                  name:UIApplicationWillTerminateNotification
@@ -345,13 +359,25 @@ static NSString * const kARDVideoTrackKind = @"video";
             // once RTP is received.
             RTCVideoTrack *track = (RTCVideoTrack *)([self videoTransceiver].receiver.track);
             [_delegate appClient:self didReceiveRemoteVideoTrack:track];
-            
+
             RTCAudioTrack *track_a = (RTCAudioTrack *)([self audioTransceiver].receiver.track);
             if([_delegate respondsToSelector:@selector(appClient:didReceiveRemoteAudioTrack:)]){
                 [_delegate appClient:self didReceiveRemoteAudioTrack:track_a];
             }
         }
     }
+}
+
+- (void)setMaxBitrate:(NSNumber *)maxBitrate forVideoSender:(RTCRtpSender *)sender {
+    if (maxBitrate.intValue <= 0) {
+        return;
+    }
+    
+    RTCRtpParameters *parametersToModify = sender.parameters;
+    for (RTCRtpEncodingParameters *encoding in parametersToModify.encodings) {
+        encoding.maxBitrateBps = @(maxBitrate.intValue * kKbpsMultiplier);
+    }
+    [sender setParameters:parametersToModify];
 }
 
 #pragma mark - RTCSessionDescriptionDelegate
@@ -374,6 +400,7 @@ static NSString * const kARDVideoTrackKind = @"video";
         
         id msg = [WebRTCAppSignalingMessage createSdpPayloadWithSender:self.userId sdp:[sdp toJSONDictionary]];
         [[WebRTCAppFIRDBManager sharedInstance] sendMessage:msg toRoom:self.connectId];
+        [self setMaxBitrateForPeerConnectionVideoSender:1000]; // 1 mb
     });
 }
 

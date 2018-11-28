@@ -12,7 +12,7 @@
 @interface ViewController : UIViewController
 
 @property (strong, nonatomic) RTCCameraPreviewView *localVideoView;
-@property (strong, nonatomic) __kindof UIView<RTCVideoRenderer> *remoteVideoView;
+@property (strong, nonatomic) RTCEAGLVideoView <RTCVideoRenderer> *remoteVideoView;
 @property (strong, nonatomic) UILabel *label;
 
 @end
