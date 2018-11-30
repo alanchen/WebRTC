@@ -11,11 +11,27 @@
 
 @import Firebase;
 
+@interface FIROptions(WebRTCApp)
+
++(FIROptions *)optionsWithGoogleAppID:(NSString *)GoogleAppID
+                          GCMSenderID:(NSString *)GCMSenderID
+                             bundleID:(NSString *)bundleID
+                               APIKey:(NSString *)APIKey
+                             clientID:(NSString *)clientID
+                          databaseURL:(NSString *)databaseURL
+                        storageBucket:(NSString *)storageBucket
+                            projectID:(NSString *)projectID;
+
+@end
+
+
 @interface WebRTCAppFIRDBManager : NSObject
 
 +(WebRTCAppFIRDBManager *)sharedInstance;
 
+-(void)setupAppWithOptions:(FIROptions *)options;
 -(void)signInWithToken:(NSString *)token completion:(void (^)(BOOL success))completion;
+-(void)signOut;
 
 -(void)getIceServersWithCompletion:(void (^)(NSArray *servers))completion;
 -(FIRDatabaseReference *)sendMessage:(id)msg toRoom:(NSString *)roomId;

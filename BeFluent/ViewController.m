@@ -10,10 +10,9 @@
 #import "WebRTCAppFIRDBManager.h"
 #import <FirebaseAuth/FirebaseAuth.h>
 #import "WebRTCAppClient.h"
-#import "WebRTCAppCaptureController.h"
 
 static NSString *userId = @""; // random
-static NSString *roomId = @"30678";
+static NSString *roomId = @"917366";
 
 @interface ViewController () <WebRTCAppClientDelegate, RTCVideoViewDelegate>
 @property (nonatomic, strong) RTCVideoTrack *remoteVideoTrack;
@@ -41,7 +40,8 @@ static NSString *roomId = @"30678";
     self.connection = [[WebRTCAppClient alloc] initWithDelegate:self
                                                            type:WebRTCAppClientStreamTypeVideo
                                                       connectId:roomId
-                                                         userId:userId];
+                                                         userId:userId
+                                                          token:nil];
     
     [self.connection connectAsCaller];
 }
@@ -55,7 +55,9 @@ static NSString *roomId = @"30678";
     self.connection = [[WebRTCAppClient alloc] initWithDelegate:self
                                                            type:WebRTCAppClientStreamTypeVideo
                                                       connectId:roomId
-                                                         userId:userId];
+                                                         userId:userId
+                                                          token:nil];
+
     [self.connection connectAsCallee];
 }
 
@@ -68,7 +70,8 @@ static NSString *roomId = @"30678";
     self.connection = [[WebRTCAppClient alloc] initWithDelegate:self
                                                            type:WebRTCAppClientStreamTypeAudio
                                                       connectId:roomId
-                                                         userId:userId];
+                                                         userId:userId
+                                                          token:nil];
     
     [self.connection connectAsCaller];
 }
@@ -82,7 +85,8 @@ static NSString *roomId = @"30678";
     self.connection = [[WebRTCAppClient alloc] initWithDelegate:self
                                                            type:WebRTCAppClientStreamTypeAudio
                                                       connectId:roomId
-                                                         userId:userId];
+                                                         userId:userId
+                                                          token:nil];
     [self.connection connectAsCallee];
 }
 
@@ -179,18 +183,23 @@ static NSString *roomId = @"30678";
         self.localVideoView.captureSession = nil;
     }
     
-//    if (self.remoteVideoTrack) {
-//        [self.remoteVideoTrack removeRenderer:self.remoteVideoView];
-//        [self.remoteVideoView renderFrame:nil];
-//        self.remoteVideoTrack = nil;
-//        [self.remoteVideoView renderFrame:nil];
-//    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (self.remoteVideoTrack) {
+            [self.remoteVideoTrack removeRenderer:self.remoteVideoView];
+            [self.remoteVideoView renderFrame:nil];
+            self.remoteVideoTrack = nil;
+            self.remoteVideoView.hidden =YES;
+        }
+    });
 }
+
 #pragma mark - RTCEAGLVideoViewDelegate
 
 - (void)videoView:(RTCEAGLVideoView*)videoView didChangeVideoSize:(CGSize)size
 {
+    NSLog(@"didChangeVideoSize %.0f %.0f",size.width, size.height);
     [self.remoteVideoView fitVideoSize:size withAspectRatioToTheView:self.view];
+    self.remoteVideoView.hidden = NO;
 }
 
 #pragma mark -  WebRTCAppClientDelegate

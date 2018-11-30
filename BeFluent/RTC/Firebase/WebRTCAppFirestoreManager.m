@@ -7,7 +7,6 @@
 //
 
 #import "WebRTCAppFirestoreManager.h"
-#import "FIRApp+WebRTCApp.h"
 
 static NSString *kRootCollectionName = @"webrtc-connection";
 static NSString *kRoomThreadCollectionName = @"message";
@@ -28,7 +27,7 @@ static NSString *kRoomThreadCollectionName = @"message";
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sharedInstance = [[WebRTCAppFirestoreManager alloc] init];
-        FIRFirestore *db = [FIRFirestore firestoreForApp:[FIRApp webRTCApp]];
+        FIRFirestore *db = [FIRFirestore firestoreForApp:[FIRApp defaultApp]];
         FIRFirestoreSettings *settings = db.settings;
         settings.timestampsInSnapshotsEnabled = YES;
         settings.persistenceEnabled = NO;

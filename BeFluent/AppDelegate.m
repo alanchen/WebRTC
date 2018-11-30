@@ -17,8 +17,18 @@
 @implementation AppDelegate
 
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
     [WebRTCAppClient RTCInitialize];
+    FIROptions *options = [FIROptions optionsWithGoogleAppID:@""
+                                                 GCMSenderID:@""
+                                                    bundleID:@""
+                                                      APIKey:@""
+                                                    clientID:@""
+                                                 databaseURL:@""
+                                               storageBucket:@""
+                                                   projectID:@""];
+    [[WebRTCAppFIRDBManager sharedInstance] setupAppWithOptions:options];
 
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.rootViewController = [[ViewController alloc] init];

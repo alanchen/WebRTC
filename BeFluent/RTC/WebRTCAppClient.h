@@ -10,8 +10,9 @@
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/WebRTC.h>
 
+#import "WebRTCAppFIRDBManager.h"
 #import "WebRTCAppUtilities.h"
-#import "WebRTCAppSignalingMessage.h"
+#import "WebRTCAppCaptureController.h"
 
 #import "RTCICECandidate+WebRTCApp.h"
 #import "RTCSessionDescription+WebRTCApp.h"
@@ -66,7 +67,8 @@ typedef NS_ENUM(NSInteger, WebRTCAppClientStreamType){
 - (instancetype)initWithDelegate:(id<WebRTCAppClientDelegate>)delegate
                             type:(WebRTCAppClientStreamType)type
                        connectId:(NSString *)connectId
-                          userId:(NSString *)userId;
+                          userId:(NSString *)userId
+                           token:(NSString *)firToken;
 
 -(void)connectAsCaller;
 -(void)connectAsCallee;

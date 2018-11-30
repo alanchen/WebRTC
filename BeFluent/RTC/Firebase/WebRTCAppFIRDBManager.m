@@ -7,7 +7,33 @@
 //
 
 #import "WebRTCAppFIRDBManager.h"
-#import "FIRApp+WebRTCApp.h"
+
+@implementation FIROptions(WebRTCApp)
+
++(FIROptions *)optionsWithGoogleAppID:(NSString *)GoogleAppID
+                          GCMSenderID:(NSString *)GCMSenderID
+                             bundleID:(NSString *)bundleID
+                               APIKey:(NSString *)APIKey
+                             clientID:(NSString *)clientID
+                          databaseURL:(NSString *)databaseURL
+                        storageBucket:(NSString *)storageBucket
+                            projectID:(NSString *)projectID
+{
+    FIROptions *options = [[FIROptions alloc] initWithGoogleAppID:GoogleAppID GCMSenderID:GCMSenderID];
+    options.bundleID = bundleID;
+    options.APIKey = APIKey;
+    options.clientID = clientID;
+    options.databaseURL = databaseURL;
+    options.storageBucket = storageBucket;
+    options.projectID = projectID;
+    
+    return options;
+}
+
+@end
+
+/////////////////////////////////////////
+/////////////////////////////////////////
 
 static NSString *kChildName = @"call";
 
@@ -33,19 +59,6 @@ static NSString *kChildName = @"call";
     return sharedInstance;
 }
 
-- (instancetype)init
-{
-    self = [super init];
-    if (self) {
-        FIRDatabase *db = [FIRDatabase databaseForApp:[FIRApp webRTCApp]];
-        db.persistenceEnabled = NO;
-        FIRDatabaseReference *ref = [db reference];
-        self.dbRef = ref;
-    }
-    
-    return self;
-}
-
 #pragma mark - Private
 
 -(FIRDatabaseReference *)referencWithRoomId:(NSString *)roomId
@@ -56,11 +69,29 @@ static NSString *kChildName = @"call";
 
 #pragma mark - Public
 
+-(void)setupAppWithOptions:(FIROptions *)options
+{
+//    [FIRApp configureWithOptions:options];
+//    FIRDatabase *db = [FIRDatabase databaseForApp:[FIRApp defaultApp]];
+    
+    [FIRApp configureWithName:@"webrtc" options:options];
+    FIRApp *app = [FIRApp appNamed:@"webrtc"];
+    FIRDatabase *db = [FIRDatabase databaseForApp:app];
+    
+    db.persistenceEnabled = NO;
+    FIRDatabaseReference *ref = [db reference];
+    self.dbRef = ref;
+}
+
 -(void)signInWithToken:(NSString *)token completion:(void (^)(BOOL success))completion
 {
     if(!token){
         if(completion) completion(NO);
         return;
+    }
+    
+    if([[FIRAuth auth] currentUser]){
+        [self signOut];
     }
     
     [[FIRAuth auth] signInWithCustomToken:token
@@ -76,8 +107,16 @@ static NSString *kChildName = @"call";
      }];
 }
 
+-(void)signOut
+{
+    [[FIRAuth auth] signOut:nil];
+}
+
 -(void)getIceServersWithCompletion:(void (^)(NSArray *servers))completion
 {
+    if(completion) completion(@[]);
+    return;
+    
     if([self.iceServers count]){
         if(completion) completion(self.iceServers);
         return;

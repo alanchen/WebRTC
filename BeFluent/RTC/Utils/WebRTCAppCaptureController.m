@@ -75,7 +75,7 @@ const Float64 kFramerateLimit = 30.0;
     [self startCapture];
 }
 
-- (void)switchToRsolution:(WebRTCAppVideoResolution *) r
+- (void)switchToResolution:(WebRTCAppVideoResolution *) r
 {
     if(r){
         _resolution = r;

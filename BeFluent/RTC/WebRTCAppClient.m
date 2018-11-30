@@ -8,8 +8,7 @@
 
 #import "WebRTCAppClient.h"
 #import "WebRTCAppClient+Defaults.h"
-#import "WebRTCAppFIRDBManager.h"
-#import "WebRTCAppCaptureController.h"
+#import "WebRTCAppSignalingMessage.h"
 
 static NSString * const kARDMediaStreamId = @"ARDAMS";
 static NSString * const kARDAudioTrackId = @"ARDAMSa0";
@@ -22,6 +21,9 @@ static int const kKbpsMultiplier = 1000;
 @property (nonatomic, strong) RTCPeerConnectionFactory *factory;
 @property (nonatomic, strong) RTCVideoTrack *localVideoTrack;
 @property (nonatomic, assign) BOOL isCaller;
+@property (nonatomic, assign) BOOL isForcedByeByTheOtherSide;
+@property (nonatomic, strong) NSString *firToken;
+
 @end
 
 @implementation WebRTCAppClient
@@ -68,12 +70,14 @@ static int const kKbpsMultiplier = 1000;
                             type:(WebRTCAppClientStreamType)type
                        connectId:(NSString *)connectId
                           userId:(NSString *)userId
+                           token:(NSString *)firToken
 {
     if (self = [super init]) {
         _delegate = delegate;
         _mediaStreamType = type;
         _connectId = connectId;
         _userId = userId;
+        _firToken = firToken;
         
         RTCDefaultVideoDecoderFactory *decoderFactory = [[RTCDefaultVideoDecoderFactory alloc] init];
         RTCDefaultVideoEncoderFactory *encoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
@@ -118,11 +122,18 @@ static int const kKbpsMultiplier = 1000;
     [[WebRTCAppFIRDBManager sharedInstance] removeCurrentObserver];
     [[WebRTCAppFIRDBManager sharedInstance] deleteAllMessagesOfRoom:_connectId completion:nil];
     [self setConnectState:WebRTCAppClientStateDisconnected];
-    [self sendBye];
+    
+    // Say byebye !!
+    if(!_isForcedByeByTheOtherSide){
+        id byeMsg = [WebRTCAppSignalingMessage createByebyeWithSender:_userId];
+        [[WebRTCAppFIRDBManager sharedInstance] sendMessage:byeMsg toRoom:_connectId];
+    }
     
     _connectId = nil;
     _userId = nil;
+    _firToken = nil;
     _isCaller = NO;
+    _isForcedByeByTheOtherSide = NO;
     _delegate = nil;
     _localVideoTrack = nil;
     
@@ -164,53 +175,75 @@ static int const kKbpsMultiplier = 1000;
     [self setConnectState:WebRTCAppClientStateConnecting];
     
     __weak __typeof(self) weakSelf = self;
-    [[WebRTCAppFIRDBManager sharedInstance] getIceServersWithCompletion:^(NSArray *servers) {
-        NSLog(@"ice servers %@",servers);
-        
-        NSArray *iceServers = @[[weakSelf defaultSTUNServer]];
-        if([servers count]){
-            iceServers = [RTCIceServer serversFromJSONArray:servers];
-        }
-        
-        /////////////////////////////////////////
-        // Create peerConnection with ice server
-        /////////////////////////////////////////
-        RTCMediaConstraints *constraints = [weakSelf defaultPeerConnectionConstraints];
-        RTCConfiguration *config = [RTCConfiguration configurationWithIceServers:iceServers];
-        [weakSelf.factory peerConnectionWithConfiguration:config
-                                          constraints:constraints
-                                             delegate:weakSelf];
-        weakSelf.peerConnection = [weakSelf.factory peerConnectionWithConfiguration:config constraints:constraints delegate:weakSelf];
-        
-        ////////////////////////////////////////
-        // Create local stream
-        /////////////////////////////////////////
-        [weakSelf createMediaSenders];
+    [[WebRTCAppFIRDBManager sharedInstance] signInWithToken:self.firToken completion:^(BOOL success) {
+        [[WebRTCAppFIRDBManager sharedInstance] getIceServersWithCompletion:^(NSArray *servers) {
+            NSLog(@"ice servers %@",servers);
+             
+            NSArray *iceServers = @[[weakSelf defaultSTUNServer]];
+            if([servers count]){
+                iceServers = [RTCIceServer serversFromJSONArray:servers];
+            }
+            
+            /////////////////////////////////////////
+            // Create peerConnection with ice server
+            /////////////////////////////////////////
+            RTCMediaConstraints *constraints = [weakSelf defaultPeerConnectionConstraints];
+            RTCConfiguration *config = [RTCConfiguration configurationWithIceServers:iceServers];
+            [weakSelf.factory peerConnectionWithConfiguration:config
+                                                  constraints:constraints
+                                                     delegate:weakSelf];
+            weakSelf.peerConnection = [weakSelf.factory peerConnectionWithConfiguration:config constraints:constraints delegate:weakSelf];
+            
+            ////////////////////////////////////////
+            // Create local stream
+            /////////////////////////////////////////
+            [weakSelf createMediaSenders];
+            
+            ////////////////////////////////////////
+            // Process signaling messages
+            /////////////////////////////////////////
+            [weakSelf prefetchMessagesOfRoom:weakSelf.connectId completion:^(NSEnumerator<FIRDataSnapshot *> *list, BOOL isByebye) {
+                if(isByebye){
+                    weakSelf.isForcedByeByTheOtherSide = YES;
+                    [weakSelf disconnect];
+                    return ;
+                }
+                
+                if(weakSelf.isCaller){
+                    [[WebRTCAppFIRDBManager sharedInstance] deleteAllMessagesOfRoom:weakSelf.connectId completion:^{
+                        [weakSelf addSignalingMessagesObserver];
+                        [weakSelf createOffer];
+                    }];
+                }else{
+                    [list.allObjects enumerateObjectsUsingBlock:^(FIRDataSnapshot * _Nonnull snapshot, NSUInteger idx, BOOL * _Nonnull stop) {
+                        WebRTCAppSignalingMessage *msg = [WebRTCAppSignalingMessage messageFromJSON:snapshot.value];
+                        if([msg.sender isEqualToString:weakSelf.userId]){
+                            [[WebRTCAppFIRDBManager sharedInstance] deleteDocRef:snapshot.ref];
+                        }else{
+                            [weakSelf processSignalingMessage:snapshot];
+                        }
+                    }];
+                    
+                    [weakSelf addSignalingMessagesObserver];
+                }
+            }];
+        }];
+    }];
+}
 
-        ////////////////////////////////////////
-        // Process signaling messages
-        /////////////////////////////////////////
-        if(weakSelf.isCaller){
-            // Clean messages in the queue.
-            [[WebRTCAppFIRDBManager sharedInstance] deleteAllMessagesOfRoom:weakSelf.connectId completion:^{
-                NSLog(@"Delete all FIR messages.");
-                [weakSelf addSignalingMessagesObserver];
-                [weakSelf createOffer];
-            }];
-        }else{
-            [[WebRTCAppFIRDBManager sharedInstance] getAllMessagesOfRoom:weakSelf.connectId completion:^(NSEnumerator<FIRDataSnapshot *> *list) {
-                NSLog(@"Get all FIR messages.");
-                [list.allObjects enumerateObjectsUsingBlock:^(FIRDataSnapshot * _Nonnull snapshot, NSUInteger idx, BOOL * _Nonnull stop) {
-                    WebRTCAppSignalingMessage *msg = [WebRTCAppSignalingMessage messageFromJSON:snapshot.value];
-                    if([msg.sender isEqualToString:weakSelf.userId]){
-                        [[WebRTCAppFIRDBManager sharedInstance] deleteDocRef:snapshot.ref];
-                    }else{
-                        [weakSelf processSignalingMessage:snapshot];
-                    }
-                }];
-                [weakSelf addSignalingMessagesObserver];
-            }];
-        }
+-(void)prefetchMessagesOfRoom:(NSString *)roomId completion:(void (^)(NSEnumerator<FIRDataSnapshot *> *list, BOOL isByebye))completion
+{
+    __block BOOL isByebye = NO;
+    [[WebRTCAppFIRDBManager sharedInstance] getAllMessagesOfRoom:roomId completion:^(NSEnumerator<FIRDataSnapshot *> *list) {
+        [list.allObjects enumerateObjectsUsingBlock:^(FIRDataSnapshot * _Nonnull snapshot, NSUInteger idx, BOOL * _Nonnull stop) {
+            WebRTCAppSignalingMessage *msg = [WebRTCAppSignalingMessage messageFromJSON:snapshot.value];
+            if(msg.isBye){
+                isByebye = YES;
+                *stop = YES;
+            }
+        }];
+        
+        if(completion) completion(list, isByebye);
     }];
 }
 
@@ -223,6 +256,7 @@ static int const kKbpsMultiplier = 1000;
          [weakSelf processSignalingMessage:snapshot];
      }];
 }
+
 -(void)processSignalingMessage:(FIRDataSnapshot *)snapshot
 {
     id data = snapshot.value;
@@ -245,6 +279,7 @@ static int const kKbpsMultiplier = 1000;
             [weakSelf peerConnection:weakSelf.peerConnection didSetSessionDescriptionWithError:error];
         }];
     }else if([msg isBye]){
+        _isForcedByeByTheOtherSide = YES;
         [self disconnect];
     }
     
@@ -288,15 +323,6 @@ static int const kKbpsMultiplier = 1000;
     
     _state = state;
     [self.delegate appClient:self didChangeState:_state];
-}
-
--(void)sendBye
-{
-    if(_userId && _connectId){
-        id byeMsg = [WebRTCAppSignalingMessage createByebyeWithSender:_userId];
-        FIRDatabaseReference *ref = [[WebRTCAppFIRDBManager sharedInstance] sendMessage:byeMsg toRoom:_connectId];
-        [[WebRTCAppFIRDBManager sharedInstance] deleteDocRef:ref];
-    }
 }
 
 #pragma mark - MediaStream

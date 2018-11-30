@@ -25,7 +25,6 @@
 		E777146621A7A9B6004E5391 /* RTCConfiguration+WebRTCApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E777146521A7A9B6004E5391 /* RTCConfiguration+WebRTCApp.m */; };
 		E777146921ABCFDF004E5391 /* RTCEAGLVideoView+WebRTCApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E777146821ABCFDF004E5391 /* RTCEAGLVideoView+WebRTCApp.m */; };
 		E7BA4F0C21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.m in Sources */ = {isa = PBXBuildFile; fileRef = E7BA4F0B21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.m */; };
-		E7BA4F0F2170995B00EEA8D5 /* FIRApp+WebRTCApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E7BA4F0E2170995B00EEA8D5 /* FIRApp+WebRTCApp.m */; };
 		E7BD14302161AFE10079CC86 /* WebRTCAppFirestoreManager.m in Sources */ = {isa = PBXBuildFile; fileRef = E7BD142F2161AFE10079CC86 /* WebRTCAppFirestoreManager.m */; };
 		E7BD14362161B0160079CC86 /* RTCICECandidate+WebRTCApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E7BD14322161B0160079CC86 /* RTCICECandidate+WebRTCApp.m */; };
 		E7BD14372161B0160079CC86 /* RTCSessionDescription+WebRTCApp.m in Sources */ = {isa = PBXBuildFile; fileRef = E7BD14352161B0160079CC86 /* RTCSessionDescription+WebRTCApp.m */; };
@@ -69,8 +68,6 @@
 		E777146821ABCFDF004E5391 /* RTCEAGLVideoView+WebRTCApp.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "RTCEAGLVideoView+WebRTCApp.m"; sourceTree = "<group>"; };
 		E7BA4F0A21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebRTCAppFIRDBManager.h; sourceTree = "<group>"; };
 		E7BA4F0B21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WebRTCAppFIRDBManager.m; sourceTree = "<group>"; };
-		E7BA4F0D2170995B00EEA8D5 /* FIRApp+WebRTCApp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FIRApp+WebRTCApp.h"; sourceTree = "<group>"; };
-		E7BA4F0E2170995B00EEA8D5 /* FIRApp+WebRTCApp.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "FIRApp+WebRTCApp.m"; sourceTree = "<group>"; };
 		E7BD142E2161AFE10079CC86 /* WebRTCAppFirestoreManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebRTCAppFirestoreManager.h; sourceTree = "<group>"; };
 		E7BD142F2161AFE10079CC86 /* WebRTCAppFirestoreManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WebRTCAppFirestoreManager.m; sourceTree = "<group>"; };
 		E7BD14322161B0160079CC86 /* RTCICECandidate+WebRTCApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RTCICECandidate+WebRTCApp.m"; sourceTree = "<group>"; };
@@ -162,8 +159,6 @@
 		E7276D0C215DDC4D001821E6 /* Firebase */ = {
 			isa = PBXGroup;
 			children = (
-				E7BA4F0D2170995B00EEA8D5 /* FIRApp+WebRTCApp.h */,
-				E7BA4F0E2170995B00EEA8D5 /* FIRApp+WebRTCApp.m */,
 				E7BD142E2161AFE10079CC86 /* WebRTCAppFirestoreManager.h */,
 				E7BD142F2161AFE10079CC86 /* WebRTCAppFirestoreManager.m */,
 				E7BA4F0A21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.h */,
@@ -355,7 +350,6 @@
 				E77651A3216F33F8005271CD /* WebRTCAppUtilities.m in Sources */,
 				E7BD143A216210CF0079CC86 /* NSError+WebRTCApp.m in Sources */,
 				E777146621A7A9B6004E5391 /* RTCConfiguration+WebRTCApp.m in Sources */,
-				E7BA4F0F2170995B00EEA8D5 /* FIRApp+WebRTCApp.m in Sources */,
 				E7BA4F0C21707C7D00EEA8D5 /* WebRTCAppFIRDBManager.m in Sources */,
 				E7BD14372161B0160079CC86 /* RTCSessionDescription+WebRTCApp.m in Sources */,
 				E777146021A56DC3004E5391 /* WebRTCAppSignalingMessage.m in Sources */,
