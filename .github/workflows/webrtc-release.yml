@@ -9,7 +9,7 @@ permissions:
   pull-requests: write
 jobs:
   Build-Script:
-    runs-on: macos-14
+    runs-on: macos-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
