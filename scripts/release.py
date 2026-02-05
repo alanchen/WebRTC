@@ -84,7 +84,7 @@ def createReleaseDraft(release, buildMetadata):
     fields = { 
         'name': f'M{release.version}',
         'tag_name': f'{release.version}.0.0',
-        'draft': True,
+        'draft': False,
         'body': body
     }
     headers = {'accept': 'application/vnd.github.v3+json', 'Authorization': f'token {GITHUB_TOKEN}'}
