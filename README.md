@@ -35,7 +35,7 @@
 或在 `Package.swift` 中加入：
 ```swift
 dependencies: [
-    .package(url: "https://github.com/alanchen/WebRTC.git", .upToNextMajor("141.0.0"))
+    .package(url: "https://github.com/alanchen/WebRTC.git", .upToNextMajor("144.0.0"))
 ]
 ```
 
