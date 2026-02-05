@@ -3,7 +3,10 @@ run-name: WebRTC Release
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 12 * * 3'
+    - cron: '0 12 15 * *'
+permissions:
+  contents: write
+  pull-requests: write
 jobs:
   Build-Script:
     runs-on: macos-latest
