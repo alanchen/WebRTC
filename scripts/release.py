@@ -30,36 +30,27 @@ def getNextRelease():
     latestReleaseVersion = int(releases[0]["tag_name"].split(".")[0])
     print(f"Latest release in our repo: version {latestReleaseVersion}")
 
-    # 從 current+1 開始往上找，找到最新的已穩定版本
-    latestStableVersion = None
-    latestStableDate = None
-    latestStableBranch = None
+    # 只檢查下一個版本（current+1）是否已穩定
+    nextVersion = latestReleaseVersion + 1
+    print(f"Checking if M{nextVersion} is stable...")
 
-    version = latestReleaseVersion + 1
-    while True:
-        try:
-            schedule = requests.get(f"https://chromiumdash.appspot.com/fetch_milestone_schedule?mstone={version}").json()
-            if not schedule.get("mstones"):
-                break
-            stableDate = datetime.fromisoformat(schedule["mstones"][0]["stable_date"])
-            if datetime.today() >= (stableDate + timedelta(days=1)):
-                # 這個版本已穩定，記錄下來，繼續往上找
-                milestoneInfo = requests.get(f"https://chromiumdash.appspot.com/fetch_milestones?mstone={version}").json()
-                latestStableVersion = version
-                latestStableDate = stableDate
-                latestStableBranch = "branch-heads/" + milestoneInfo[0]["webrtc_branch"]
-                print(f"  Found stable version: M{version}, date: {stableDate}")
-                version += 1
-            else:
-                break
-        except:
-            break
-
-    if latestStableVersion is None:
+    try:
+        schedule = requests.get(f"https://chromiumdash.appspot.com/fetch_milestone_schedule?mstone={nextVersion}").json()
+        if not schedule.get("mstones"):
+            print(f"  M{nextVersion} not found in Chromium schedule")
+            return None
+        stableDate = datetime.fromisoformat(schedule["mstones"][0]["stable_date"])
+        if datetime.today() >= (stableDate + timedelta(days=1)):
+            milestoneInfo = requests.get(f"https://chromiumdash.appspot.com/fetch_milestones?mstone={nextVersion}").json()
+            branch = "branch-heads/" + milestoneInfo[0]["webrtc_branch"]
+            print(f"  M{nextVersion} is stable (since {stableDate}), will build")
+            return NextReleaseResult(version=nextVersion, releaseDate=stableDate, branch=branch)
+        else:
+            print(f"  M{nextVersion} not yet stable (expected {stableDate})")
+            return None
+    except Exception as e:
+        print(f"  Error checking M{nextVersion}: {e}")
         return None
-
-    print(f"Latest stable version to build: M{latestStableVersion}")
-    return NextReleaseResult(version = latestStableVersion, releaseDate = latestStableDate, branch = latestStableBranch)
 
 def buildWebRTC(branch):
     os.environ["BUILD_VP9"] = "true"
