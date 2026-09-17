@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 ## WebRTC library build script
 ## Created by Stasel
 ## BSD-3 License
@@ -78,7 +80,10 @@ else
     git pull origin main
     cd ..
 fi
-export PATH=$(pwd)/depot_tools:$PATH
+export PATH="$(pwd)/depot_tools:$PATH"
+
+# 首次執行 fetch 前，先初始化 depot_tools 的 Python 與必要工具。
+"$(pwd)/depot_tools/ensure_bootstrap"
 
 # Step 2 - Download and build WebRTC
 if [ ! -d src ]; then
