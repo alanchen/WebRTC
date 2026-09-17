@@ -90,8 +90,9 @@ if [ ! -d src ]; then
     fetch --nohooks --no-history webrtc_ios
 fi
 cd src
-git fetch --all
-git checkout $BRANCH
+# branch-heads 位於特殊 ref 命名空間，需明確下載指定版本。
+git fetch --depth=1 origin "$BRANCH"
+git checkout --detach FETCH_HEAD
 cd ..
 gclient sync --no-history --with_branch_heads --with_tags
 cd src
